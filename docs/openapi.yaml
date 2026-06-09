@@ -1,0 +1,874 @@
+openapi: 3.0.3
+info:
+  title: Refund Calculators API
+  description: |
+    API for Freedom and GAP warranty refund calculators.
+
+    Authentication uses a JWT stored in an httpOnly cookie named `token` (7-day lifetime).
+    All endpoints except `POST /api/auth/login` require a valid session cookie.
+  version: 1.0.0
+  contact:
+    name: Refund Calculators
+    url: https://github.com/Chrismiller122580/Refund
+
+servers:
+  - url: https://refund-mocha-psi.vercel.app
+    description: Production
+
+tags:
+  - name: Authentication
+    description: Session management via JWT cookie
+  - name: Calculations
+    description: Freedom and GAP refund calculations
+  - name: Cases
+    description: Per-user saved calculator cases
+
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Sign in
+      description: |
+        Authenticate with email and password. On success, returns the user object and
+        sets an httpOnly `token` cookie containing a JWT (7-day expiry).
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: admin@example.com
+              password: your-password
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: JWT session cookie (`token`, httpOnly, SameSite=Lax, Secure in production)
+              schema:
+                type: string
+                example: token=eyJhbGciOiJIUzI1NiJ9...; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Missing email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Email and password are required
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Invalid email or password
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Login failed
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Sign out
+      description: End the current session by clearing the `token` cookie.
+      operationId: logout
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          headers:
+            Set-Cookie:
+              description: Cleared session cookie
+              schema:
+                type: string
+                example: token=; Path=/; HttpOnly; Max-Age=0
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+        '401':
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Unauthorized
+
+  /api/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user
+      description: Return the currently authenticated user from the session cookie.
+      operationId: getCurrentUser
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '401':
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Unauthorized
+
+  /api/calculate/freedom:
+    post:
+      tags:
+        - Calculations
+      summary: Calculate Freedom refund
+      description: |
+        Calculate Freedom warranty refunds using mileage-based and days-based paths.
+        Returns computed results, validation warnings, and a recommendation for which
+        refund path to use.
+      operationId: calculateFreedom
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FreedomInputs'
+            example:
+              startMileage: 101520
+              endMileage: 204145
+              contractTermMiles: 5000
+              contractTermDays: 1095
+              startDate: '2024-06-25'
+              endDate: '2025-10-29'
+              cost: 1928
+              markup: 1050
+              deductible: 50
+              approvedClaimAmount: 0
+      responses:
+        '200':
+          description: Calculation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FreedomCalculateResponse'
+        '401':
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Unauthorized
+
+  /api/calculate/gap:
+    post:
+      tags:
+        - Calculations
+      summary: Calculate GAP refund
+      description: Calculate GAP warranty refunds using a days-based proration model.
+      operationId: calculateGap
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GapInputs'
+            example:
+              contractTermDays: 1825
+              startDate: '2023-03-04'
+              endDate: '2026-02-27'
+              fwCost: 103
+              retailCost: 855
+              deductible: 50
+              approvedClaimAmount: 0
+      responses:
+        '200':
+          description: Calculation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GapCalculateResponse'
+        '401':
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Unauthorized
+
+  /api/cases:
+    get:
+      tags:
+        - Cases
+      summary: List saved cases
+      description: |
+        List saved cases for the authenticated user, filtered by calculator type.
+        Cases are ordered by `savedAt` descending (newest first).
+      operationId: listCases
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: type
+          in: query
+          required: true
+          description: Calculator type to filter by
+          schema:
+            $ref: '#/components/schemas/CaseType'
+      responses:
+        '200':
+          description: List of saved cases
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CasesListResponse'
+        '400':
+          description: Invalid or missing type parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Invalid type
+        '401':
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Unauthorized
+
+    post:
+      tags:
+        - Cases
+      summary: Save a case
+      description: Create a new saved case with calculator inputs for the authenticated user.
+      operationId: createCase
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCaseRequest'
+            examples:
+              freedom:
+                summary: Freedom case
+                value:
+                  name: Customer ABC
+                  type: freedom
+                  inputs:
+                    startMileage: 101520
+                    endMileage: 204145
+                    contractTermMiles: 5000
+                    contractTermDays: 1095
+                    startDate: '2024-06-25'
+                    endDate: '2025-10-29'
+                    cost: 1928
+                    markup: 1050
+                    deductible: 50
+                    approvedClaimAmount: 0
+              gap:
+                summary: GAP case
+                value:
+                  name: Customer XYZ
+                  type: gap
+                  inputs:
+                    contractTermDays: 1825
+                    startDate: '2023-03-04'
+                    endDate: '2026-02-27'
+                    fwCost: 103
+                    retailCost: 855
+                    deductible: 50
+                    approvedClaimAmount: 0
+      responses:
+        '200':
+          description: Case saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateCaseResponse'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingName:
+                  summary: Missing case name
+                  value:
+                    error: Case name is required
+                invalidType:
+                  summary: Invalid case type
+                  value:
+                    error: Invalid type
+        '401':
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Unauthorized
+
+  /api/cases/{id}:
+    delete:
+      tags:
+        - Cases
+      summary: Delete a case
+      description: Delete a saved case owned by the authenticated user.
+      operationId: deleteCase
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Case UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Case deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteCaseResponse'
+        '401':
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Unauthorized
+        '404':
+          description: Case not found or not owned by user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Not found
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: |
+        JWT session token issued on login. Cookie properties:
+        - `httpOnly`: true
+        - `sameSite`: Lax
+        - `secure`: true (production only)
+        - `maxAge`: 604800 (7 days)
+        - `path`: /
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+      additionalProperties: false
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User UUID
+        email:
+          type: string
+          format: email
+          description: User email address
+      additionalProperties: false
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email
+        password:
+          type: string
+          format: password
+          description: User password
+      additionalProperties: false
+
+    LoginResponse:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+      additionalProperties: false
+
+    MeResponse:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+      additionalProperties: false
+
+    LogoutResponse:
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
+          enum: [true]
+      additionalProperties: false
+
+    DeleteCaseResponse:
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
+          enum: [true]
+      additionalProperties: false
+
+    DateString:
+      type: string
+      format: date
+      description: Date in YYYY-MM-DD format
+      example: '2024-06-25'
+
+    FreedomInputs:
+      type: object
+      required:
+        - startMileage
+        - endMileage
+        - contractTermMiles
+        - contractTermDays
+        - startDate
+        - endDate
+        - cost
+        - markup
+        - deductible
+        - approvedClaimAmount
+      properties:
+        startMileage:
+          type: number
+          description: Odometer reading at contract start
+        endMileage:
+          type: number
+          description: Odometer reading at cancellation
+        contractTermMiles:
+          type: number
+          description: Total miles allowed by contract
+        contractTermDays:
+          type: number
+          description: Total days in contract term
+        startDate:
+          $ref: '#/components/schemas/DateString'
+        endDate:
+          $ref: '#/components/schemas/DateString'
+        cost:
+          type: number
+          description: FW cost ($)
+        markup:
+          type: number
+          description: Client mark up ($)
+        deductible:
+          type: number
+          description: Deductible amount ($)
+        approvedClaimAmount:
+          type: number
+          description: Approved claim amount ($)
+      additionalProperties: false
+
+    GapInputs:
+      type: object
+      required:
+        - contractTermDays
+        - startDate
+        - endDate
+        - fwCost
+        - retailCost
+        - deductible
+        - approvedClaimAmount
+      properties:
+        contractTermDays:
+          type: number
+          description: Total days in contract term
+        startDate:
+          $ref: '#/components/schemas/DateString'
+        endDate:
+          $ref: '#/components/schemas/DateString'
+        fwCost:
+          type: number
+          description: Amount FW pays to Classic ($)
+        retailCost:
+          type: number
+          description: Retail cost in FW ($)
+        deductible:
+          type: number
+          description: Deductible from Classic refund sheet ($)
+        approvedClaimAmount:
+          type: number
+          description: Approved claim amount ($)
+      additionalProperties: false
+
+    ProratedBreakdown:
+      type: object
+      required:
+        - mileagePerDay
+        - daysPerDiem
+        - costPerMile
+        - ourPercent
+        - fwProratedProfit
+        - clientProratedProfit
+      properties:
+        mileagePerDay:
+          type: number
+          description: Contract miles per day
+        daysPerDiem:
+          type: number
+          description: Cost per day
+        costPerMile:
+          type: number
+          description: Cost per mile
+        ourPercent:
+          type: number
+          description: Prorated percentage of contract cost
+        fwProratedProfit:
+          type: number
+          description: FW prorated profit ($)
+        clientProratedProfit:
+          type: number
+          description: Client prorated profit ($)
+      additionalProperties: false
+
+    RefundBreakdown:
+      type: object
+      required:
+        - amountSentToClient
+        - clientRefundToCustomer
+        - totalCustomerReceives
+      properties:
+        amountSentToClient:
+          type: number
+          description: Amount sent to client ($)
+        clientRefundToCustomer:
+          type: number
+          description: Client refund to customer ($)
+        totalCustomerReceives:
+          type: number
+          description: Total amount customer receives ($)
+      additionalProperties: false
+
+    FreedomResults:
+      type: object
+      required:
+        - mileCap
+        - milesDriven
+        - daysUsed
+        - miles
+        - days
+        - refundPerMiles
+        - refundPerDays
+      properties:
+        mileCap:
+          type: number
+          description: Maximum allowed mileage (startMileage + contractTermMiles)
+        milesDriven:
+          type: number
+          description: Miles driven (endMileage - startMileage)
+        daysUsed:
+          type: number
+          description: Days used between start and end dates
+        miles:
+          $ref: '#/components/schemas/ProratedBreakdown'
+        days:
+          allOf:
+            - $ref: '#/components/schemas/ProratedBreakdown'
+          description: Days-based proration (costPerMile is always 0)
+        refundPerMiles:
+          $ref: '#/components/schemas/RefundBreakdown'
+        refundPerDays:
+          $ref: '#/components/schemas/RefundBreakdown'
+      additionalProperties: false
+
+    GapProratedBreakdown:
+      type: object
+      required:
+        - daysPerDiem
+        - ourPercent
+        - fwProratedProfit
+        - clientProratedProfit
+      properties:
+        daysPerDiem:
+          type: number
+          description: Cost per day
+        ourPercent:
+          type: number
+          description: Prorated percentage of FW cost
+        fwProratedProfit:
+          type: number
+          description: FW prorated profit ($)
+        clientProratedProfit:
+          type: number
+          description: Client prorated profit ($)
+      additionalProperties: false
+
+    GapRefundBreakdown:
+      type: object
+      required:
+        - amountSentToClient
+        - clientRefundToCustomer
+        - totalCustomerReceives
+      properties:
+        amountSentToClient:
+          type: number
+          description: Amount sent to client ($)
+        clientRefundToCustomer:
+          type: number
+          description: Client refund to customer ($)
+        totalCustomerReceives:
+          type: number
+          description: Total amount customer receives ($)
+      additionalProperties: false
+
+    GapResults:
+      type: object
+      required:
+        - daysUsed
+        - prorated
+        - refund
+      properties:
+        daysUsed:
+          type: number
+          description: Days used between start and end dates
+        prorated:
+          $ref: '#/components/schemas/GapProratedBreakdown'
+        refund:
+          $ref: '#/components/schemas/GapRefundBreakdown'
+      additionalProperties: false
+
+    WarningSeverity:
+      type: string
+      enum:
+        - error
+        - warning
+        - info
+      description: Severity level of a validation warning
+
+    ValidationWarning:
+      type: object
+      required:
+        - id
+        - severity
+        - message
+      properties:
+        id:
+          type: string
+          description: Unique warning identifier
+          example: mile-cap-exceeded
+        severity:
+          $ref: '#/components/schemas/WarningSeverity'
+        message:
+          type: string
+          description: Human-readable warning message
+        field:
+          type: string
+          description: Input field associated with the warning (if applicable)
+          example: endMileage
+      additionalProperties: false
+
+    RefundPath:
+      type: string
+      enum:
+        - miles
+        - days
+      description: Recommended refund calculation path
+
+    FreedomRecommendation:
+      type: object
+      required:
+        - recommended
+        - milesTotal
+        - daysTotal
+        - difference
+        - milesDisqualified
+        - message
+      properties:
+        recommended:
+          oneOf:
+            - $ref: '#/components/schemas/RefundPath'
+            - type: string
+              enum:
+                - equivalent
+          description: Recommended refund path, or `equivalent` if both paths yield the same total
+        milesTotal:
+          type: number
+          description: Total customer refund via mileage path ($)
+        daysTotal:
+          type: number
+          description: Total customer refund via days path ($)
+        difference:
+          type: number
+          description: Absolute difference between paths ($)
+        milesDisqualified:
+          type: boolean
+          description: Whether the mileage path is invalid
+        milesDisqualifyReason:
+          type: string
+          description: Reason the mileage path is disqualified (when milesDisqualified is true)
+        message:
+          type: string
+          description: Human-readable recommendation summary
+      additionalProperties: false
+
+    FreedomCalculateResponse:
+      type: object
+      required:
+        - results
+        - warnings
+        - recommendation
+      properties:
+        results:
+          $ref: '#/components/schemas/FreedomResults'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationWarning'
+        recommendation:
+          $ref: '#/components/schemas/FreedomRecommendation'
+      additionalProperties: false
+
+    GapCalculateResponse:
+      type: object
+      required:
+        - results
+        - warnings
+      properties:
+        results:
+          $ref: '#/components/schemas/GapResults'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationWarning'
+      additionalProperties: false
+
+    CaseType:
+      type: string
+      enum:
+        - freedom
+        - gap
+      description: Calculator type
+
+    SavedCase:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - inputs
+        - savedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Case UUID
+        name:
+          type: string
+          description: Display name for the case
+        type:
+          $ref: '#/components/schemas/CaseType'
+        inputs:
+          oneOf:
+            - $ref: '#/components/schemas/FreedomInputs'
+            - $ref: '#/components/schemas/GapInputs'
+          description: Calculator inputs (shape depends on case type)
+        savedAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the case was saved
+      additionalProperties: false
+
+    CasesListResponse:
+      type: object
+      required:
+        - cases
+      properties:
+        cases:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavedCase'
+      additionalProperties: false
+
+    CreateCaseRequest:
+      type: object
+      required:
+        - name
+        - type
+        - inputs
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Display name for the case
+        type:
+          $ref: '#/components/schemas/CaseType'
+        inputs:
+          oneOf:
+            - $ref: '#/components/schemas/FreedomInputs'
+            - $ref: '#/components/schemas/GapInputs'
+          description: Calculator inputs (must match the specified type)
+      additionalProperties: false
+
+    CreateCaseResponse:
+      type: object
+      required:
+        - case
+      properties:
+        case:
+          $ref: '#/components/schemas/SavedCase'
+      additionalProperties: false

@@ -42,6 +42,9 @@ Open http://localhost:3000 — you will be redirected to `/login`.
 
 All `/api/calculate/*` and `/api/cases` routes require authentication. Saved cases are stored per user in Postgres.
 
+**Full API documentation:** [docs/API.md](docs/API.md)  
+**OpenAPI spec:** [docs/openapi.yaml](docs/openapi.yaml)
+
 ## Deploy (Vercel)
 
 1. Connect the GitHub repo to Vercel
