@@ -1,10 +1,8 @@
-import { AuthProvider } from '@/components/AuthProvider'
-import { CalculatorApp } from '@/components/CalculatorApp'
+import { LandingPage } from '@/components/LandingPage'
+import { getSession } from '@/lib/api-auth'
 
-export default function HomePage() {
-  return (
-    <AuthProvider>
-      <CalculatorApp />
-    </AuthProvider>
-  )
+export default async function HomePage() {
+  const session = await getSession()
+
+  return <LandingPage isAuthenticated={session !== null} />
 }

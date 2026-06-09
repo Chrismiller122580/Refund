@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
   const authed = await isAuthenticated(request)
 
   if (pathname === '/login') {
-    if (authed) return NextResponse.redirect(new URL('/', request.url))
+    if (authed) return NextResponse.redirect(new URL('/app', request.url))
     return NextResponse.next()
   }
 
@@ -39,5 +39,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/api/:path*'],
+  matcher: ['/app/:path*', '/login', '/api/:path*'],
 }
