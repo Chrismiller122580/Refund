@@ -37,8 +37,10 @@ Open http://localhost:3000 — you will be redirected to `/login`.
 | `/api/auth/me` | GET | Current user |
 | `/api/calculate/freedom` | POST | Freedom refund calculation |
 | `/api/calculate/gap` | POST | GAP refund calculation |
+| `/api/cases` | GET, POST | List and save refund cases (per user) |
+| `/api/cases/:id` | DELETE | Delete a saved case |
 
-All `/api/calculate/*` routes require authentication.
+All `/api/calculate/*` and `/api/cases` routes require authentication. Saved cases are stored per user in Postgres.
 
 ## Deploy (Vercel)
 

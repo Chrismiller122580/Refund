@@ -1,8 +1,6 @@
 import type { FreedomInputs } from './calculators/freedom'
 import type { GapInputs } from './calculators/gap'
 
-const STORAGE_KEY = 'refund-calculators:cases'
-
 export type CaseType = 'freedom' | 'gap'
 
 export interface SavedCase {
@@ -13,47 +11,29 @@ export interface SavedCase {
   savedAt: string
 }
 
-function readAll(): SavedCase[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as SavedCase[]
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
+export async function listCases(type: CaseType): Promise<SavedCase[]> {
+  const res = await fetch(`/api/cases?type=${type}`)
+  if (!res.ok) throw new Error('Failed to load cases')
+  const data = await res.json()
+  return data.cases as SavedCase[]
 }
 
-function writeAll(cases: SavedCase[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cases))
+export async function saveCase(
+  name: string,
+  type: CaseType,
+  inputs: FreedomInputs | GapInputs,
+): Promise<SavedCase> {
+  const res = await fetch('/api/cases', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, type, inputs }),
+  })
+  if (!res.ok) throw new Error('Failed to save case')
+  const data = await res.json()
+  return data.case as SavedCase
 }
 
-export function listCases(type: CaseType): SavedCase[] {
-  return readAll()
-    .filter((c) => c.type === type)
-    .sort((a, b) => b.savedAt.localeCompare(a.savedAt))
-}
-
-export function saveCase(name: string, type: CaseType, inputs: FreedomInputs | GapInputs): SavedCase {
-  const trimmed = name.trim()
-  if (!trimmed) throw new Error('Case name is required')
-
-  const entry: SavedCase = {
-    id: crypto.randomUUID(),
-    name: trimmed,
-    type,
-    inputs,
-    savedAt: new Date().toISOString(),
-  }
-
-  writeAll([entry, ...readAll()])
-  return entry
-}
-
-export function deleteCase(id: string) {
-  writeAll(readAll().filter((c) => c.id !== id))
-}
-
-export function getCase(id: string): SavedCase | undefined {
-  return readAll().find((c) => c.id === id)
+export async function deleteCase(id: string): Promise<void> {
+  const res = await fetch(`/api/cases/${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Failed to delete case')
 }

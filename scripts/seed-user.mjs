@@ -25,4 +25,15 @@ await sql`
   ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password
 `
 
+await sql`
+  CREATE TABLE IF NOT EXISTS cases (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('freedom', 'gap')),
+    inputs JSONB NOT NULL,
+    saved_at TIMESTAMPTZ DEFAULT now()
+  )
+`
+
 console.log(`Seeded user: ${email}`)
