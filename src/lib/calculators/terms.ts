@@ -22,3 +22,23 @@ export const GAP_TERMS: TermRow[] = FREEDOM_TERMS.map(({ label, months, days }) 
   months,
   days,
 }))
+
+export const CUSTOM_TERM_LABEL = 'Custom'
+
+export function matchFreedomTerm(miles: number, days: number): string {
+  const match = FREEDOM_TERMS.find((t) => t.miles === miles && t.days === days)
+  return match?.label ?? CUSTOM_TERM_LABEL
+}
+
+export function matchGapTerm(days: number): string {
+  const match = GAP_TERMS.find((t) => t.days === days)
+  return match?.label ?? CUSTOM_TERM_LABEL
+}
+
+export function getFreedomTerm(label: string): TermRow | undefined {
+  return FREEDOM_TERMS.find((t) => t.label === label)
+}
+
+export function getGapTerm(label: string): TermRow | undefined {
+  return GAP_TERMS.find((t) => t.label === label)
+}

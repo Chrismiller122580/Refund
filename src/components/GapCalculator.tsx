@@ -4,15 +4,19 @@ import {
   DEFAULT_GAP_INPUTS,
   type GapInputs,
 } from '../lib/calculators/gap'
-import { GAP_TERMS } from '../lib/calculators/terms'
+import { GAP_TERMS, matchGapTerm, type TermRow } from '../lib/calculators/terms'
 import {
   hasFieldError,
   validateGapInputs,
   warningsForField,
 } from '../lib/calculators/validation'
+import { formatGapSummary } from '../lib/export'
 import { formatCurrency, formatPercent } from '../lib/format'
+import { CaseManager } from './CaseManager'
 import { DateInput, Field, NumberInput } from './Field'
+import { ExportMenu } from './ExportMenu'
 import { ResultCard } from './ResultCard'
+import { TermPicker } from './TermPicker'
 import { TermsTable } from './TermsTable'
 import { ValidationAlerts } from './ValidationAlerts'
 
@@ -23,18 +27,44 @@ function fieldMessage(warnings: ReturnType<typeof validateGapInputs>, field: str
 
 export function GapCalculator() {
   const [inputs, setInputs] = useState<GapInputs>(DEFAULT_GAP_INPUTS)
+  const [termLabel, setTermLabel] = useState(() => matchGapTerm(DEFAULT_GAP_INPUTS.contractTermDays))
+
   const results = useMemo(() => calculateGap(inputs), [inputs])
   const warnings = useMemo(() => validateGapInputs(inputs, results), [inputs, results])
 
   const update = <K extends keyof GapInputs>(key: K, value: GapInputs[K]) => {
-    setInputs((prev) => ({ ...prev, [key]: value }))
+    setInputs((prev) => {
+      const next = { ...prev, [key]: value }
+      if (key === 'contractTermDays') {
+        setTermLabel(matchGapTerm(next.contractTermDays))
+      }
+      return next
+    })
+  }
+
+  const handleTermSelect = (term: TermRow) => {
+    setTermLabel(term.label)
+    setInputs((prev) => ({ ...prev, contractTermDays: term.days }))
+  }
+
+  const handleLoad = (loaded: GapInputs) => {
+    setInputs(loaded)
+    setTermLabel(matchGapTerm(loaded.contractTermDays))
+  }
+
+  const handleReset = () => {
+    setInputs(DEFAULT_GAP_INPUTS)
+    setTermLabel(matchGapTerm(DEFAULT_GAP_INPUTS.contractTermDays))
   }
 
   return (
     <div className="space-y-8">
+      <CaseManager type="gap" inputs={inputs} onLoad={handleLoad} onReset={handleReset} />
+
       <div className="grid gap-8 lg:grid-cols-2">
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-900">Inputs</h2>
+          <TermPicker terms={GAP_TERMS} selectedLabel={termLabel} onSelect={handleTermSelect} />
           <ValidationAlerts warnings={warnings} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Contract Term Days" error={fieldMessage(warnings, 'contractTermDays')}>
@@ -78,10 +108,7 @@ export function GapCalculator() {
                 hasError={hasFieldError(warnings, 'retailCost')}
               />
             </Field>
-            <Field
-              label="Deductible"
-              hint="Obtain from Classic refund sheet"
-            >
+            <Field label="Deductible" hint="Obtain from Classic refund sheet">
               <NumberInput value={inputs.deductible} onChange={(v) => update('deductible', v)} step={0.01} />
             </Field>
             <Field label="Approved Claim Amount">
@@ -116,7 +143,13 @@ export function GapCalculator() {
       </div>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">Refund Results</h2>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold text-slate-900">Refund Results</h2>
+          <ExportMenu
+            filename={`gap-refund-${new Date().toISOString().slice(0, 10)}.txt`}
+            getSummary={() => formatGapSummary(inputs, results, warnings, termLabel)}
+          />
+        </div>
         <div className="max-w-md">
           <ResultCard title="Refund per Days" {...results.refund} />
         </div>

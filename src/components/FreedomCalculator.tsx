@@ -4,15 +4,25 @@ import {
   DEFAULT_FREEDOM_INPUTS,
   type FreedomInputs,
 } from '../lib/calculators/freedom'
-import { FREEDOM_TERMS } from '../lib/calculators/terms'
+import { getFreedomRecommendation } from '../lib/calculators/recommendation'
+import {
+  FREEDOM_TERMS,
+  matchFreedomTerm,
+  type TermRow,
+} from '../lib/calculators/terms'
 import {
   hasFieldError,
   validateFreedomInputs,
   warningsForField,
 } from '../lib/calculators/validation'
+import { formatFreedomSummary } from '../lib/export'
 import { formatCurrency, formatNumber, formatPercent } from '../lib/format'
+import { AdvisorCard } from './AdvisorCard'
+import { CaseManager } from './CaseManager'
 import { DateInput, Field, NumberInput } from './Field'
+import { ExportMenu } from './ExportMenu'
 import { ResultCard } from './ResultCard'
+import { TermPicker } from './TermPicker'
 import { TermsTable } from './TermsTable'
 import { ValidationAlerts } from './ValidationAlerts'
 
@@ -67,18 +77,54 @@ function fieldMessage(warnings: ReturnType<typeof validateFreedomInputs>, field:
 
 export function FreedomCalculator() {
   const [inputs, setInputs] = useState<FreedomInputs>(DEFAULT_FREEDOM_INPUTS)
+  const [termLabel, setTermLabel] = useState(() =>
+    matchFreedomTerm(DEFAULT_FREEDOM_INPUTS.contractTermMiles, DEFAULT_FREEDOM_INPUTS.contractTermDays),
+  )
+
   const results = useMemo(() => calculateFreedom(inputs), [inputs])
   const warnings = useMemo(() => validateFreedomInputs(inputs, results), [inputs, results])
+  const recommendation = useMemo(
+    () => getFreedomRecommendation(results, warnings),
+    [results, warnings],
+  )
 
   const update = <K extends keyof FreedomInputs>(key: K, value: FreedomInputs[K]) => {
-    setInputs((prev) => ({ ...prev, [key]: value }))
+    setInputs((prev) => {
+      const next = { ...prev, [key]: value }
+      if (key === 'contractTermMiles' || key === 'contractTermDays') {
+        setTermLabel(matchFreedomTerm(next.contractTermMiles, next.contractTermDays))
+      }
+      return next
+    })
+  }
+
+  const handleTermSelect = (term: TermRow) => {
+    setTermLabel(term.label)
+    setInputs((prev) => ({
+      ...prev,
+      contractTermMiles: term.miles ?? prev.contractTermMiles,
+      contractTermDays: term.days,
+    }))
+  }
+
+  const handleLoad = (loaded: FreedomInputs) => {
+    setInputs(loaded)
+    setTermLabel(matchFreedomTerm(loaded.contractTermMiles, loaded.contractTermDays))
+  }
+
+  const handleReset = () => {
+    setInputs(DEFAULT_FREEDOM_INPUTS)
+    setTermLabel(matchFreedomTerm(DEFAULT_FREEDOM_INPUTS.contractTermMiles, DEFAULT_FREEDOM_INPUTS.contractTermDays))
   }
 
   return (
     <div className="space-y-8">
+      <CaseManager type="freedom" inputs={inputs} onLoad={handleLoad} onReset={handleReset} />
+
       <div className="grid gap-8 lg:grid-cols-2">
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-900">Inputs</h2>
+          <TermPicker terms={FREEDOM_TERMS} selectedLabel={termLabel} onSelect={handleTermSelect} />
           <ValidationAlerts warnings={warnings} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Start Mileage" error={fieldMessage(warnings, 'startMileage')}>
@@ -161,13 +207,22 @@ export function FreedomCalculator() {
             </dl>
           </div>
 
+          <AdvisorCard recommendation={recommendation} />
           <ProratedSection title="Mileage-Based Proration" showMileage {...results.miles} />
           <ProratedSection title="Days-Based Proration" showMileage={false} {...results.days} />
         </section>
       </div>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">Refund Results</h2>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold text-slate-900">Refund Results</h2>
+          <ExportMenu
+            filename={`freedom-refund-${new Date().toISOString().slice(0, 10)}.txt`}
+            getSummary={() =>
+              formatFreedomSummary(inputs, results, warnings, recommendation, termLabel)
+            }
+          />
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <ResultCard title="Refund per Miles" {...results.refundPerMiles} />
           <ResultCard title="Refund per Days" {...results.refundPerDays} />
