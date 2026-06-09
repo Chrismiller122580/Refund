@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { calculateFreedom, DEFAULT_FREEDOM_INPUTS } from './calculators/freedom'
+import { calculateFreedom, EXAMPLE_FREEDOM_INPUTS } from './calculators/freedom'
 import { getFreedomRecommendation } from './calculators/recommendation'
 import { validateFreedomInputs } from './calculators/validation'
 import { formatFreedomSummary } from './export'
 
 describe('formatFreedomSummary', () => {
   it('includes key sections and recommendation', () => {
-    const results = calculateFreedom(DEFAULT_FREEDOM_INPUTS)
-    const warnings = validateFreedomInputs(DEFAULT_FREEDOM_INPUTS, results)
+    const results = calculateFreedom(EXAMPLE_FREEDOM_INPUTS)
+    const warnings = validateFreedomInputs(EXAMPLE_FREEDOM_INPUTS, results)
     const recommendation = getFreedomRecommendation(results, warnings)
     const text = formatFreedomSummary(
-      DEFAULT_FREEDOM_INPUTS,
+      EXAMPLE_FREEDOM_INPUTS,
       results,
       warnings,
       recommendation,

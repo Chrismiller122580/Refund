@@ -99,6 +99,20 @@ export function calculateFreedom(inputs: FreedomInputs): FreedomResults {
 }
 
 export const DEFAULT_FREEDOM_INPUTS: FreedomInputs = {
+  startMileage: 0,
+  endMileage: 0,
+  contractTermMiles: 0,
+  contractTermDays: 0,
+  startDate: '',
+  endDate: '',
+  cost: 0,
+  markup: 0,
+  deductible: 0,
+  approvedClaimAmount: 0,
+}
+
+/** Sample data from the Excel workbook — used in tests only */
+export const EXAMPLE_FREEDOM_INPUTS: FreedomInputs = {
   startMileage: 101520,
   endMileage: 204145,
   contractTermMiles: 5000,

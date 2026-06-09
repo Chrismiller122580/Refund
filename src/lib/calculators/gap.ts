@@ -59,6 +59,17 @@ export function calculateGap(inputs: GapInputs): GapResults {
 }
 
 export const DEFAULT_GAP_INPUTS: GapInputs = {
+  contractTermDays: 0,
+  startDate: '',
+  endDate: '',
+  fwCost: 0,
+  retailCost: 0,
+  deductible: 0,
+  approvedClaimAmount: 0,
+}
+
+/** Sample data from the Excel workbook — used in tests only */
+export const EXAMPLE_GAP_INPUTS: GapInputs = {
   contractTermDays: 1825,
   startDate: '2023-03-04',
   endDate: '2026-02-27',
