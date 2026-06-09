@@ -23,7 +23,6 @@ import { DateInput, Field, NumberInput } from './Field'
 import { ExportMenu } from './ExportMenu'
 import { ResultCard } from './ResultCard'
 import { TermPicker } from './TermPicker'
-import { TermsTable } from './TermsTable'
 import { ValidationAlerts } from './ValidationAlerts'
 
 function ProratedSection({
@@ -229,10 +228,6 @@ export function FreedomCalculator() {
         </div>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-slate-900">Reference Terms</h2>
-        <TermsTable terms={FREEDOM_TERMS} showMiles />
-      </section>
     </div>
   )
 }
