@@ -9,10 +9,10 @@ Freedom and GAP warranty refund calculators with JWT authentication and server-s
    npm install
    ```
 
-2. Create a [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres) database and copy the connection string.
+2. Link a [Neon Postgres](https://vercel.com/marketplace/neon) database to the Vercel project (sets `POSTGRES_URL` automatically).
 
 3. Copy `.env.example` to `.env.local` and set:
-   - `DATABASE_URL` — Postgres connection string
+   - `POSTGRES_URL` — set automatically by Neon (or use individual `PGHOST`, `POSTGRES_USER`, etc.)
    - `JWT_SECRET` — random 32+ character secret
    - `ADMIN_EMAIL` / `ADMIN_PASSWORD` — initial login user
 
@@ -46,5 +46,5 @@ All `/api/calculate/*` and `/api/cases` routes require authentication. Saved cas
 
 1. Connect the GitHub repo to Vercel
 2. Add a Vercel Postgres database to the project
-3. Set environment variables: `DATABASE_URL`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+3. Set environment variables: `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` (Neon vars are auto-set)
 4. Deploy, then run `npm run db:seed` locally (with production env vars) or use Vercel CLI

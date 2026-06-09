@@ -1,6 +1,6 @@
-import { sql } from '@vercel/postgres'
 import type { FreedomInputs } from './calculators/freedom'
 import type { GapInputs } from './calculators/gap'
+import { getSql } from './db-connection'
 import type { CaseType, SavedCase } from './storage'
 
 export interface DbUser {
@@ -11,6 +11,7 @@ export interface DbUser {
 }
 
 export async function ensureSchema() {
+  const sql = getSql()
   await sql`
     CREATE TABLE IF NOT EXISTS users (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -32,12 +33,14 @@ export async function ensureSchema() {
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser | undefined> {
-  const { rows } = await sql<DbUser>`SELECT id, email, password, created_at FROM users WHERE email = ${email}`
-  return rows[0]
+  const sql = getSql()
+  const rows = await sql`SELECT id, email, password, created_at FROM users WHERE email = ${email}`
+  return rows[0] as DbUser | undefined
 }
 
 export async function createUser(email: string, passwordHash: string) {
-  const { rows } = await sql`INSERT INTO users (email, password) VALUES (${email}, ${passwordHash}) RETURNING id, email, created_at`
+  const sql = getSql()
+  const rows = await sql`INSERT INTO users (email, password) VALUES (${email}, ${passwordHash}) RETURNING id, email, created_at`
   return rows[0]
 }
 
@@ -60,13 +63,14 @@ function mapCase(row: DbCaseRow): SavedCase {
 }
 
 export async function listCasesForUser(userId: string, type: CaseType): Promise<SavedCase[]> {
-  const { rows } = await sql<DbCaseRow>`
+  const sql = getSql()
+  const rows = await sql`
     SELECT id, name, type, inputs, saved_at
     FROM cases
     WHERE user_id = ${userId} AND type = ${type}
     ORDER BY saved_at DESC
   `
-  return rows.map(mapCase)
+  return (rows as DbCaseRow[]).map(mapCase)
 }
 
 export async function createCase(
@@ -75,17 +79,19 @@ export async function createCase(
   type: CaseType,
   inputs: FreedomInputs | GapInputs,
 ): Promise<SavedCase> {
-  const { rows } = await sql<DbCaseRow>`
+  const sql = getSql()
+  const rows = await sql`
     INSERT INTO cases (user_id, name, type, inputs)
     VALUES (${userId}, ${name}, ${type}, ${JSON.stringify(inputs)}::jsonb)
     RETURNING id, name, type, inputs, saved_at
   `
-  return mapCase(rows[0])
+  return mapCase(rows[0] as DbCaseRow)
 }
 
 export async function deleteCaseForUser(userId: string, caseId: string): Promise<boolean> {
-  const { rowCount } = await sql`
-    DELETE FROM cases WHERE id = ${caseId} AND user_id = ${userId}
+  const sql = getSql()
+  const rows = await sql`
+    DELETE FROM cases WHERE id = ${caseId} AND user_id = ${userId} RETURNING id
   `
-  return (rowCount ?? 0) > 0
+  return rows.length > 0
 }
