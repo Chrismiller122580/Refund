@@ -1,20 +1,38 @@
+'use client'
+
 import { useState } from 'react'
-import { FreedomCalculator } from './components/FreedomCalculator'
-import { GapCalculator } from './components/GapCalculator'
+import { useAuth } from './AuthProvider'
+import { FreedomCalculator } from './FreedomCalculator'
+import { GapCalculator } from './GapCalculator'
 
 type Tab = 'freedom' | 'gap'
 
-export default function App() {
+export function CalculatorApp() {
   const [tab, setTab] = useState<Tab>('freedom')
+  const { user, logout } = useAuth()
 
   return (
     <div className="min-h-screen bg-slate-100">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-          <h1 className="text-2xl font-bold text-slate-900">Refund Calculators</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Freedom and GAP warranty refund calculations
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">Refund Calculators</h1>
+              <p className="mt-1 text-sm text-slate-600">
+                Freedom and GAP warranty refund calculations
+              </p>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-slate-600">
+              <span>{user?.email}</span>
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
           <nav className="mt-4 flex gap-2">
             {([
               ['freedom', 'Freedom'],

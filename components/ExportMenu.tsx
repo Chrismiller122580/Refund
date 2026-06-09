@@ -1,5 +1,7 @@
+'use client'
+
 import { useState } from 'react'
-import { copyToClipboard, downloadTextFile } from '../lib/export'
+import { copyToClipboard, downloadTextFile } from '@/lib/export'
 
 interface ExportMenuProps {
   getSummary: () => string

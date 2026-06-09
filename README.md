@@ -1,28 +1,48 @@
 # Refund Calculators
 
-Web app for Freedom and GAP warranty refund calculations, ported from the Excel workbook.
+Freedom and GAP warranty refund calculators with JWT authentication and server-side calculation API.
 
-## Getting Started
+## Setup
 
-```bash
-npm install
-npm run dev
-```
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-Open http://localhost:5173 in your browser.
+2. Create a [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres) database and copy the connection string.
 
-## Scripts
+3. Copy `.env.example` to `.env.local` and set:
+   - `DATABASE_URL` — Postgres connection string
+   - `JWT_SECRET` — random 32+ character secret
+   - `ADMIN_EMAIL` / `ADMIN_PASSWORD` — initial login user
 
-- `npm run dev` — start development server
-- `npm run build` — production build
-- `npm run preview` — preview production build
+4. Seed the admin user:
+   ```bash
+   npm run db:seed
+   ```
 
-## Calculators
+5. Run locally:
+   ```bash
+   npm run dev
+   ```
 
-### Freedom
-Mileage-based and days-based refund paths with prorated FW/client profit splits.
+Open http://localhost:3000 — you will be redirected to `/login`.
 
-### GAP
-Days-based refund calculator using FW cost and retail cost inputs.
+## API
 
-Default values match the example data in `Both Refund Calculators.xlsx`.
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/login` | POST | Email/password login, sets JWT cookie |
+| `/api/auth/logout` | POST | Clears session |
+| `/api/auth/me` | GET | Current user |
+| `/api/calculate/freedom` | POST | Freedom refund calculation |
+| `/api/calculate/gap` | POST | GAP refund calculation |
+
+All `/api/calculate/*` routes require authentication.
+
+## Deploy (Vercel)
+
+1. Connect the GitHub repo to Vercel
+2. Add a Vercel Postgres database to the project
+3. Set environment variables: `DATABASE_URL`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+4. Deploy, then run `npm run db:seed` locally (with production env vars) or use Vercel CLI

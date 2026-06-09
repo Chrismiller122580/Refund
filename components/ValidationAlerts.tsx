@@ -1,4 +1,4 @@
-import type { ValidationWarning, WarningSeverity } from '../lib/calculators/validation'
+import type { ValidationWarning, WarningSeverity } from '@/lib/calculators/validation'
 
 const styles: Record<WarningSeverity, { container: string; icon: string }> = {
   error: {

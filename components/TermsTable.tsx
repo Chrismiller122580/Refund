@@ -1,5 +1,5 @@
-import type { TermRow } from '../lib/calculators/terms'
-import { formatNumber } from '../lib/format'
+import type { TermRow } from '@/lib/calculators/terms'
+import { formatNumber } from '@/lib/format'
 
 interface TermsTableProps {
   terms: TermRow[]

@@ -1,17 +1,19 @@
-import { useMemo, useState } from 'react'
+'use client'
+
+import { useState } from 'react'
 import {
-  calculateGap,
   DEFAULT_GAP_INPUTS,
   type GapInputs,
-} from '../lib/calculators/gap'
-import { GAP_TERMS, matchGapTerm, type TermRow } from '../lib/calculators/terms'
+} from '@/lib/calculators/gap'
+import { useGapCalculation } from '@/hooks/useGapCalculation'
+import { GAP_TERMS, matchGapTerm, type TermRow } from '@/lib/calculators/terms'
 import {
   hasFieldError,
   validateGapInputs,
   warningsForField,
-} from '../lib/calculators/validation'
-import { formatGapSummary } from '../lib/export'
-import { formatCurrency, formatPercent } from '../lib/format'
+} from '@/lib/calculators/validation'
+import { formatGapSummary } from '@/lib/export'
+import { formatCurrency, formatPercent } from '@/lib/format'
 import { CaseManager } from './CaseManager'
 import { DateInput, Field, NumberInput } from './Field'
 import { ExportMenu } from './ExportMenu'
@@ -28,8 +30,9 @@ export function GapCalculator() {
   const [inputs, setInputs] = useState<GapInputs>(DEFAULT_GAP_INPUTS)
   const [termLabel, setTermLabel] = useState(() => matchGapTerm(DEFAULT_GAP_INPUTS.contractTermDays))
 
-  const results = useMemo(() => calculateGap(inputs), [inputs])
-  const warnings = useMemo(() => validateGapInputs(inputs, results), [inputs, results])
+  const { data, loading, error } = useGapCalculation(inputs)
+  const results = data?.results
+  const warnings = data?.warnings ?? []
 
   const update = <K extends keyof GapInputs>(key: K, value: GapInputs[K]) => {
     setInputs((prev) => {
@@ -59,6 +62,8 @@ export function GapCalculator() {
   return (
     <div className="space-y-8">
       <CaseManager type="gap" inputs={inputs} onLoad={handleLoad} onReset={handleReset} />
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      {loading && <p className="text-sm text-slate-500">Calculating…</p>}
 
       <div className="grid gap-8 lg:grid-cols-2">
         <section className="space-y-4">
@@ -118,6 +123,8 @@ export function GapCalculator() {
 
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-900">Derived Values</h2>
+          {results ? (
+          <>
           <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <dt className="text-blue-700">Days Used</dt>
@@ -138,6 +145,10 @@ export function GapCalculator() {
               <dd className="text-right text-slate-800">{formatCurrency(results.prorated.clientProratedProfit)}</dd>
             </dl>
           </div>
+          </>
+          ) : (
+            <p className="text-sm text-slate-500">Enter inputs to see results.</p>
+          )}
         </section>
       </div>
 
@@ -146,12 +157,14 @@ export function GapCalculator() {
           <h2 className="text-lg font-semibold text-slate-900">Refund Results</h2>
           <ExportMenu
             filename={`gap-refund-${new Date().toISOString().slice(0, 10)}.txt`}
-            getSummary={() => formatGapSummary(inputs, results, warnings, termLabel)}
+            getSummary={() => results ? formatGapSummary(inputs, results, warnings, termLabel) : ''}
           />
         </div>
+        {results && (
         <div className="max-w-md">
           <ResultCard title="Refund per Days" {...results.refund} />
         </div>
+        )}
       </section>
 
     </div>

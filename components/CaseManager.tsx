@@ -1,7 +1,9 @@
+'use client'
+
 import { useState } from 'react'
-import { deleteCase, listCases, saveCase, type CaseType } from '../lib/storage'
-import type { FreedomInputs } from '../lib/calculators/freedom'
-import type { GapInputs } from '../lib/calculators/gap'
+import { deleteCase, listCases, saveCase, type CaseType } from '@/lib/storage'
+import type { FreedomInputs } from '@/lib/calculators/freedom'
+import type { GapInputs } from '@/lib/calculators/gap'
 
 interface CaseManagerProps<T extends FreedomInputs | GapInputs> {
   type: CaseType

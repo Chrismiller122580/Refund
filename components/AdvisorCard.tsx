@@ -1,5 +1,5 @@
-import type { FreedomRecommendation } from '../lib/calculators/recommendation'
-import { formatCurrency } from '../lib/format'
+import type { FreedomRecommendation } from '@/lib/calculators/recommendation'
+import { formatCurrency } from '@/lib/format'
 
 interface AdvisorCardProps {
   recommendation: FreedomRecommendation

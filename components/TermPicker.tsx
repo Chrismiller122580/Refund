@@ -1,5 +1,7 @@
-import type { TermRow } from '../lib/calculators/terms'
-import { CUSTOM_TERM_LABEL } from '../lib/calculators/terms'
+'use client'
+
+import type { TermRow } from '@/lib/calculators/terms'
+import { CUSTOM_TERM_LABEL } from '@/lib/calculators/terms'
 
 interface TermPickerProps {
   terms: TermRow[]

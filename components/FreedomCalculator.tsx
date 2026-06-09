@@ -1,22 +1,23 @@
-import { useMemo, useState } from 'react'
+'use client'
+
+import { useState } from 'react'
 import {
-  calculateFreedom,
   DEFAULT_FREEDOM_INPUTS,
   type FreedomInputs,
-} from '../lib/calculators/freedom'
-import { getFreedomRecommendation } from '../lib/calculators/recommendation'
+} from '@/lib/calculators/freedom'
+import { useFreedomCalculation } from '@/hooks/useFreedomCalculation'
 import {
   FREEDOM_TERMS,
   matchFreedomTerm,
   type TermRow,
-} from '../lib/calculators/terms'
+} from '@/lib/calculators/terms'
 import {
   hasFieldError,
   validateFreedomInputs,
   warningsForField,
-} from '../lib/calculators/validation'
-import { formatFreedomSummary } from '../lib/export'
-import { formatCurrency, formatNumber, formatPercent } from '../lib/format'
+} from '@/lib/calculators/validation'
+import { formatFreedomSummary } from '@/lib/export'
+import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
 import { AdvisorCard } from './AdvisorCard'
 import { CaseManager } from './CaseManager'
 import { DateInput, Field, NumberInput } from './Field'
@@ -80,12 +81,10 @@ export function FreedomCalculator() {
     matchFreedomTerm(DEFAULT_FREEDOM_INPUTS.contractTermMiles, DEFAULT_FREEDOM_INPUTS.contractTermDays),
   )
 
-  const results = useMemo(() => calculateFreedom(inputs), [inputs])
-  const warnings = useMemo(() => validateFreedomInputs(inputs, results), [inputs, results])
-  const recommendation = useMemo(
-    () => getFreedomRecommendation(results, warnings),
-    [results, warnings],
-  )
+  const { data, loading, error } = useFreedomCalculation(inputs)
+  const results = data?.results
+  const warnings = data?.warnings ?? []
+  const recommendation = data?.recommendation
 
   const update = <K extends keyof FreedomInputs>(key: K, value: FreedomInputs[K]) => {
     setInputs((prev) => {
@@ -119,6 +118,8 @@ export function FreedomCalculator() {
   return (
     <div className="space-y-8">
       <CaseManager type="freedom" inputs={inputs} onLoad={handleLoad} onReset={handleReset} />
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      {loading && <p className="text-sm text-slate-500">Calculating…</p>}
 
       <div className="grid gap-8 lg:grid-cols-2">
         <section className="space-y-4">
@@ -195,6 +196,8 @@ export function FreedomCalculator() {
 
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-900">Derived Values</h2>
+          {results ? (
+          <>
           <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <dt className="text-blue-700">Mile Cap</dt>
@@ -206,9 +209,13 @@ export function FreedomCalculator() {
             </dl>
           </div>
 
-          <AdvisorCard recommendation={recommendation} />
+          {recommendation && <AdvisorCard recommendation={recommendation} />}
           <ProratedSection title="Mileage-Based Proration" showMileage {...results.miles} />
           <ProratedSection title="Days-Based Proration" showMileage={false} {...results.days} />
+          </>
+          ) : (
+            <p className="text-sm text-slate-500">Enter inputs to see results.</p>
+          )}
         </section>
       </div>
 
@@ -218,14 +225,18 @@ export function FreedomCalculator() {
           <ExportMenu
             filename={`freedom-refund-${new Date().toISOString().slice(0, 10)}.txt`}
             getSummary={() =>
-              formatFreedomSummary(inputs, results, warnings, recommendation, termLabel)
+              results && recommendation
+                ? formatFreedomSummary(inputs, results, warnings, recommendation, termLabel)
+                : ''
             }
           />
         </div>
+        {results && recommendation ? (
         <div className="grid gap-4 md:grid-cols-2">
           <ResultCard title="Refund per Miles" {...results.refundPerMiles} />
           <ResultCard title="Refund per Days" {...results.refundPerDays} />
         </div>
+        ) : null}
       </section>
 
     </div>
