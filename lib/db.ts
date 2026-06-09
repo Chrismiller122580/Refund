@@ -1,5 +1,6 @@
 import type { FreedomInputs } from './calculators/freedom'
 import type { GapInputs } from './calculators/gap'
+import { hashPassword } from './auth'
 import { getSql } from './db-connection'
 import type { CaseType, SavedCase } from './storage'
 
@@ -29,6 +30,21 @@ export async function ensureSchema() {
       inputs JSONB NOT NULL,
       saved_at TIMESTAMPTZ DEFAULT now()
     )
+  `
+}
+
+/** Sync admin user from ADMIN_EMAIL / ADMIN_PASSWORD env vars */
+export async function ensureAdminUser() {
+  const email = process.env.ADMIN_EMAIL?.toLowerCase().trim()
+  const password = process.env.ADMIN_PASSWORD
+  if (!email || !password) return
+
+  const sql = getSql()
+  const hash = await hashPassword(password)
+  await sql`
+    INSERT INTO users (email, password)
+    VALUES (${email}, ${hash})
+    ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password
   `
 }
 

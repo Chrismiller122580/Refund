@@ -1,10 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 export function LoginForm() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -18,6 +16,7 @@ export function LoginForm() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       })
       const data = await res.json()
@@ -25,8 +24,8 @@ export function LoginForm() {
         setError(data.error ?? 'Login failed')
         return
       }
-      router.push('/')
-      router.refresh()
+      // Full page navigation ensures the session cookie is sent
+      window.location.href = '/'
     } catch {
       setError('Login failed. Please try again.')
     } finally {
@@ -43,6 +42,7 @@ export function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          autoComplete="email"
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
         />
       </div>
@@ -53,6 +53,7 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="current-password"
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
         />
       </div>
