@@ -104,6 +104,23 @@ export async function createCase(
   return mapCase(rows[0] as DbCaseRow)
 }
 
+export async function updateCaseForUser(
+  userId: string,
+  caseId: string,
+  name: string,
+  inputs: FreedomInputs | GapInputs,
+): Promise<SavedCase | null> {
+  const sql = getSql()
+  const rows = await sql`
+    UPDATE cases
+    SET name = ${name}, inputs = ${JSON.stringify(inputs)}::jsonb, saved_at = now()
+    WHERE id = ${caseId} AND user_id = ${userId}
+    RETURNING id, name, type, inputs, saved_at
+  `
+  if (rows.length === 0) return null
+  return mapCase(rows[0] as DbCaseRow)
+}
+
 export async function deleteCaseForUser(userId: string, caseId: string): Promise<boolean> {
   const sql = getSql()
   const rows = await sql`

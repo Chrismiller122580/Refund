@@ -50,7 +50,7 @@ curl -c cookies.txt -X POST https://refund-mocha-psi.vercel.app/api/auth/login \
 # Authenticated request
 curl -b cookies.txt -X POST https://refund-mocha-psi.vercel.app/api/calculate/freedom \
   -H "Content-Type: application/json" \
-  -d '{"startMileage":101520,"endMileage":204145,"contractTermMiles":5000,"contractTermDays":1095,"startDate":"2024-06-25","endDate":"2025-10-29","cost":1928,"markup":1050,"deductible":50,"approvedClaimAmount":0}'
+  -d '{"startMileage":101520,"endMileage":204145,"contractTermMiles":5000,"contractTermDays":1095,"startDate":"2024-06-25","endDate":"2025-10-29","cost":1928,"markup":1050,"deductible":50,"approvedClaimAmount":0,"unlimitedMileage":false}'
 ```
 
 ### Example (JavaScript fetch)
@@ -184,6 +184,7 @@ Calculate Freedom warranty refunds using mileage-based and days-based paths.
 | `markup` | number | Yes | Client mark up ($) |
 | `deductible` | number | Yes | Deductible amount ($) |
 | `approvedClaimAmount` | number | Yes | Approved claim amount ($) |
+| `unlimitedMileage` | boolean | No | When `true`, only the days-based path is used (defaults to `false`) |
 
 **Response `200`:**
 
@@ -351,6 +352,37 @@ Save a new case.
   }
 }
 ```
+
+---
+
+#### `PATCH /api/cases/{id}`
+
+Update a saved case owned by the current user (name and inputs).
+
+**Auth required:** Yes
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Display name for the case |
+| `inputs` | object | Yes | `FreedomInputs` or `GapInputs` |
+
+**Response `200`:**
+
+```json
+{
+  "case": {
+    "id": "uuid",
+    "name": "Customer ABC (updated)",
+    "type": "freedom",
+    "inputs": { /* ... */ },
+    "savedAt": "2026-06-09T18:30:00.000Z"
+  }
+}
+```
+
+**Response `404`:** Case not found or not owned by user
 
 ---
 

@@ -33,6 +33,21 @@ export async function saveCase(
   return data.case as SavedCase
 }
 
+export async function updateCase(
+  id: string,
+  name: string,
+  inputs: FreedomInputs | GapInputs,
+): Promise<SavedCase> {
+  const res = await fetch(`/api/cases/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, inputs }),
+  })
+  if (!res.ok) throw new Error('Failed to update case')
+  const data = await res.json()
+  return data.case as SavedCase
+}
+
 export async function deleteCase(id: string): Promise<void> {
   const res = await fetch(`/api/cases/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Failed to delete case')

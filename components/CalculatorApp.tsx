@@ -9,7 +9,7 @@ type Tab = 'freedom' | 'gap'
 
 export function CalculatorApp() {
   const [tab, setTab] = useState<Tab>('freedom')
-  const { user, logout } = useAuth()
+  const { user, loading, logout } = useAuth()
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -23,7 +23,7 @@ export function CalculatorApp() {
               </p>
             </div>
             <div className="flex items-center gap-3 text-sm text-slate-600">
-              <span>{user?.email}</span>
+              <span>{loading ? 'Loading…' : user?.email}</span>
               <button
                 type="button"
                 onClick={() => logout()}

@@ -3,7 +3,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FreedomInputs } from '@/lib/calculators/freedom'
 import type { GapInputs } from '@/lib/calculators/gap'
-import { deleteCase, listCases, saveCase, type CaseType, type SavedCase } from '@/lib/storage'
+import {
+  deleteCase,
+  listCases,
+  saveCase,
+  updateCase,
+  type CaseType,
+  type SavedCase,
+} from '@/lib/storage'
 
 interface CaseManagerProps<T extends FreedomInputs | GapInputs> {
   type: CaseType
@@ -42,18 +49,30 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
     refresh()
   }, [refresh])
 
+  const openSave = () => {
+    if (selectedId) {
+      const current = cases.find((c) => c.id === selectedId)
+      setName(current?.name ?? '')
+    } else {
+      setName('')
+    }
+    setShowSave(true)
+  }
+
   const handleSave = async () => {
     if (!name.trim()) return
     setSaving(true)
     setError(null)
     try {
-      const saved = await saveCase(name, type, inputs)
+      const saved = selectedId
+        ? await updateCase(selectedId, name.trim(), inputs)
+        : await saveCase(name.trim(), type, inputs)
       setName('')
       setShowSave(false)
       setSelectedId(saved.id)
       await refresh()
     } catch {
-      setError('Failed to save case')
+      setError(selectedId ? 'Failed to update case' : 'Failed to save case')
     } finally {
       setSaving(false)
     }
@@ -82,10 +101,10 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={() => setShowSave((v) => !v)}
+          onClick={() => (showSave ? setShowSave(false) : openSave())}
           className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
-          Save Case
+          {selectedId ? 'Update Case' : 'Save Case'}
         </button>
         <select
           value={selectedId}
@@ -122,6 +141,9 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
 
       {showSave && (
         <div className="flex w-full flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:w-auto">
+          {selectedId && (
+            <span className="w-full text-xs text-slate-500">Updating the loaded case.</span>
+          )}
           <input
             type="text"
             value={name}
@@ -135,7 +157,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
             disabled={saving}
             className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? 'Saving…' : selectedId ? 'Update' : 'Save'}
           </button>
           <button
             type="button"

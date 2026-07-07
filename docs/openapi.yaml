@@ -166,6 +166,7 @@ paths:
               markup: 1050
               deductible: 50
               approvedClaimAmount: 0
+              unlimitedMileage: false
       responses:
         '200':
           description: Calculation results
@@ -173,6 +174,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FreedomCalculateResponse'
+        '400':
+          description: Invalid JSON body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Missing or invalid session
           content:
@@ -212,6 +219,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GapCalculateResponse'
+        '400':
+          description: Invalid JSON body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Missing or invalid session
           content:
@@ -339,6 +352,66 @@ paths:
                 error: Unauthorized
 
   /api/cases/{id}:
+    patch:
+      tags:
+        - Cases
+      summary: Update a case
+      description: Update the name and inputs of a saved case owned by the authenticated user.
+      operationId: updateCase
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Case UUID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - inputs
+              properties:
+                name:
+                  type: string
+                inputs:
+                  oneOf:
+                    - $ref: '#/components/schemas/FreedomInputs'
+                    - $ref: '#/components/schemas/GapInputs'
+      responses:
+        '200':
+          description: Case updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  case:
+                    $ref: '#/components/schemas/SavedCase'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Case not found or not owned by user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags:
         - Cases
@@ -493,7 +566,6 @@ components:
         - markup
         - deductible
         - approvedClaimAmount
-        - unlimitedMileage
       properties:
         startMileage:
           type: number
@@ -525,6 +597,7 @@ components:
           description: Approved claim amount ($)
         unlimitedMileage:
           type: boolean
+          default: false
           description: When true, refund is calculated by time only (no mileage path)
       additionalProperties: false
 

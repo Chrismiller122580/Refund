@@ -26,7 +26,7 @@ Freedom and GAP warranty refund calculators with JWT authentication and server-s
    npm run dev
    ```
 
-Open http://localhost:3000 — you will be redirected to `/login`.
+Open http://localhost:3000 for the landing page. Sign in at `/login` to access calculators at `/app`.
 
 ## API
 
@@ -38,7 +38,7 @@ Open http://localhost:3000 — you will be redirected to `/login`.
 | `/api/calculate/freedom` | POST | Freedom refund calculation |
 | `/api/calculate/gap` | POST | GAP refund calculation |
 | `/api/cases` | GET, POST | List and save refund cases (per user) |
-| `/api/cases/:id` | DELETE | Delete a saved case |
+| `/api/cases/:id` | PATCH, DELETE | Update or delete a saved case |
 
 All `/api/calculate/*` and `/api/cases` routes require authentication. Saved cases are stored per user in Postgres.
 
@@ -48,6 +48,6 @@ All `/api/calculate/*` and `/api/cases` routes require authentication. Saved cas
 ## Deploy (Vercel)
 
 1. Connect the GitHub repo to Vercel
-2. Add a Vercel Postgres database to the project
+2. Link a [Neon Postgres](https://vercel.com/marketplace/neon) database to the project
 3. Set environment variables: `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` (Neon vars are auto-set)
 4. Deploy, then run `npm run db:seed` locally (with production env vars) or use Vercel CLI
