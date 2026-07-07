@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { extractApiKeyFromRequest, verifyApiKey } from './api-keys'
 import { verifyToken, type UserRole } from './auth'
-import { findUserById } from './db'
+import { ensureSchema, findUserById } from './db'
 
 export type AuthMethod = 'cookie' | 'api_key'
 
@@ -14,13 +14,15 @@ export interface AuthContext {
 }
 
 export async function getAuthContext(request: Request): Promise<AuthContext | null> {
+  await ensureSchema()
+
   const cookieStore = await cookies()
   const token = cookieStore.get('token')?.value
   if (token) {
     const payload = await verifyToken(token)
     if (payload) {
       const user = await findUserById(payload.userId)
-      if (user?.is_active) {
+      if (user && user.is_active !== false) {
         return {
           userId: user.id,
           email: user.email,
@@ -36,7 +38,7 @@ export async function getAuthContext(request: Request): Promise<AuthContext | nu
     const record = await verifyApiKey(apiKey)
     if (record) {
       const user = await findUserById(record.user_id)
-      if (user?.is_active) {
+      if (user && user.is_active !== false) {
         return {
           userId: user.id,
           email: user.email,
@@ -53,11 +55,25 @@ export async function getAuthContext(request: Request): Promise<AuthContext | nu
 export async function requireAuth(
   request: Request,
 ): Promise<{ ctx: AuthContext } | { error: NextResponse }> {
-  const ctx = await getAuthContext(request)
-  if (!ctx) {
-    return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
+  try {
+    const ctx = await getAuthContext(request)
+    if (!ctx) {
+      return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
+    }
+    return { ctx }
+  } catch (error) {
+    console.error('Auth error:', error)
+    const message = error instanceof Error ? error.message : 'Authentication failed'
+    if (message.includes('Database not configured')) {
+      return {
+        error: NextResponse.json(
+          { error: 'Database not configured. Link Neon to this Vercel project.' },
+          { status: 500 },
+        ),
+      }
+    }
+    return { error: NextResponse.json({ error: 'Authentication service unavailable' }, { status: 500 }) }
   }
-  return { ctx }
 }
 
 export async function requireAdmin(

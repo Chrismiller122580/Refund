@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     await ensureAdminUser()
 
     const user = await findUserByEmail(normalizedEmail)
-    if (!user || !user.is_active || !(await verifyPassword(password, user.password))) {
+    if (!user || user.is_active === false || !(await verifyPassword(password, user.password))) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
 

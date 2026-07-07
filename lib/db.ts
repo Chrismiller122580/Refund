@@ -78,6 +78,13 @@ export async function ensureSchema() {
       revoked_at TIMESTAMPTZ
     )
   `
+
+  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase().trim()
+  if (adminEmail) {
+    await sql`
+      UPDATE users SET role = 'admin', is_active = true WHERE email = ${adminEmail}
+    `
+  }
 }
 
 function mapPublicUser(row: DbUser): PublicUser {
@@ -114,7 +121,13 @@ export async function findUserByEmail(email: string): Promise<DbUser | undefined
     SELECT id, email, password, role, is_active, created_at
     FROM users WHERE email = ${email}
   `
-  return rows[0] as DbUser | undefined
+  const row = rows[0] as DbUser | undefined
+  if (!row) return undefined
+  return {
+    ...row,
+    role: row.role ?? 'user',
+    is_active: row.is_active ?? true,
+  }
 }
 
 export async function findUserById(id: string): Promise<DbUser | undefined> {
@@ -123,7 +136,13 @@ export async function findUserById(id: string): Promise<DbUser | undefined> {
     SELECT id, email, password, role, is_active, created_at
     FROM users WHERE id = ${id}
   `
-  return rows[0] as DbUser | undefined
+  const row = rows[0] as DbUser | undefined
+  if (!row) return undefined
+  return {
+    ...row,
+    role: row.role ?? 'user',
+    is_active: row.is_active ?? true,
+  }
 }
 
 export async function listUsers(): Promise<PublicUser[]> {
