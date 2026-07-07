@@ -7,6 +7,6 @@ export async function POST(request: Request) {
   const inputs = (await request.json()) as FreedomInputs
   const results = calculateFreedom(inputs)
   const warnings = validateFreedomInputs(inputs, results)
-  const recommendation = getFreedomRecommendation(results, warnings)
+  const recommendation = getFreedomRecommendation(results, warnings, inputs)
   return NextResponse.json({ results, warnings, recommendation })
 }

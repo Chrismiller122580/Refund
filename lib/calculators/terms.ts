@@ -30,6 +30,11 @@ export function matchFreedomTerm(miles: number, days: number): string {
   return match?.label ?? CUSTOM_TERM_LABEL
 }
 
+export function matchFreedomTermByDays(days: number): string {
+  const match = FREEDOM_TERMS.find((t) => t.days === days)
+  return match?.label ?? CUSTOM_TERM_LABEL
+}
+
 export function matchGapTerm(days: number): string {
   const match = GAP_TERMS.find((t) => t.days === days)
   return match?.label ?? CUSTOM_TERM_LABEL

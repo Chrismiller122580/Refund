@@ -18,6 +18,7 @@ describe('SavedCase type', () => {
         markup: 0,
         deductible: 0,
         approvedClaimAmount: 0,
+        unlimitedMileage: false,
       },
       savedAt: new Date().toISOString(),
     }

@@ -41,6 +41,20 @@ describe('validateFreedomInputs', () => {
     const warnings = validateFreedomInputs(EXAMPLE_FREEDOM_INPUTS, results)
     expect(warnings.some((w) => w.id === 'negative-refund-miles')).toBe(true)
   })
+
+  it('skips mileage validation when unlimited mileage is enabled', () => {
+    const inputs = {
+      ...EXAMPLE_FREEDOM_INPUTS,
+      contractTermMiles: 0,
+      endMileage: 999999,
+      unlimitedMileage: true,
+    }
+    const results = calculateFreedom(inputs)
+    const warnings = validateFreedomInputs(inputs, results)
+    expect(warnings.some((w) => w.id === 'invalid-contract-term-miles')).toBe(false)
+    expect(warnings.some((w) => w.id === 'mile-cap-exceeded')).toBe(false)
+    expect(warnings.some((w) => w.id === 'negative-refund-miles')).toBe(false)
+  })
 })
 
 describe('validateGapInputs', () => {

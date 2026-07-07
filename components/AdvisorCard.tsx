@@ -6,6 +6,10 @@ interface AdvisorCardProps {
 }
 
 export function AdvisorCard({ recommendation }: AdvisorCardProps) {
+  const hideMilesPath =
+    recommendation.milesDisqualified &&
+    recommendation.milesDisqualifyReason?.includes('Unlimited mileage')
+
   const isNegative =
     recommendation.recommended === 'days'
       ? recommendation.daysTotal < 0
@@ -38,8 +42,12 @@ export function AdvisorCard({ recommendation }: AdvisorCardProps) {
       </div>
       <p className="mt-2 text-sm text-slate-700">{recommendation.message}</p>
       <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
-        <dt className="text-slate-500">Miles path total</dt>
-        <dd className="text-right font-medium text-slate-800">{formatCurrency(recommendation.milesTotal)}</dd>
+        {!hideMilesPath && (
+          <>
+            <dt className="text-slate-500">Miles path total</dt>
+            <dd className="text-right font-medium text-slate-800">{formatCurrency(recommendation.milesTotal)}</dd>
+          </>
+        )}
         <dt className="text-slate-500">Days path total</dt>
         <dd className="text-right font-medium text-slate-800">{formatCurrency(recommendation.daysTotal)}</dd>
       </dl>

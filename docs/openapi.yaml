@@ -493,6 +493,7 @@ components:
         - markup
         - deductible
         - approvedClaimAmount
+        - unlimitedMileage
       properties:
         startMileage:
           type: number
@@ -522,6 +523,9 @@ components:
         approvedClaimAmount:
           type: number
           description: Approved claim amount ($)
+        unlimitedMileage:
+          type: boolean
+          description: When true, refund is calculated by time only (no mileage path)
       additionalProperties: false
 
     GapInputs:

@@ -20,14 +20,20 @@ export function formatFreedomSummary(
   recommendation?: FreedomRecommendation,
   termLabel?: string,
 ): string {
+  const unlimited = inputs.unlimitedMileage
   const rows = [
     'FREEDOM REFUND CALCULATOR SUMMARY',
     `Generated: ${new Date().toLocaleString()}`,
     '',
     line('Contract Term', termLabel ?? 'Custom'),
-    line('Start Mileage', inputs.startMileage.toLocaleString()),
-    line('End Mileage', inputs.endMileage.toLocaleString()),
-    line('Contract Term Miles', inputs.contractTermMiles.toLocaleString()),
+    line('Unlimited Mileage', unlimited ? 'Yes' : 'No'),
+    ...(unlimited
+      ? []
+      : [
+          line('Start Mileage', inputs.startMileage.toLocaleString()),
+          line('End Mileage', inputs.endMileage.toLocaleString()),
+          line('Contract Term Miles', inputs.contractTermMiles.toLocaleString()),
+        ]),
     line('Contract Term Days', String(inputs.contractTermDays)),
     line('Start Date', inputs.startDate),
     line('End Date', inputs.endDate),
@@ -37,14 +43,22 @@ export function formatFreedomSummary(
     line('Approved Claim', formatCurrency(inputs.approvedClaimAmount)),
     '',
     'Derived Values:',
-    line('  Mile Cap', results.mileCap.toLocaleString()),
-    line('  Miles Driven', results.milesDriven.toLocaleString()),
-    line('  Days Used', String(results.daysUsed)),
-    '',
-    'Refund per Miles:',
-    line('  Amount Sent to Client', formatCurrency(results.refundPerMiles.amountSentToClient)),
-    line('  Client Refund to Customer', formatCurrency(results.refundPerMiles.clientRefundToCustomer)),
-    line('  Total Customer Receives', formatCurrency(results.refundPerMiles.totalCustomerReceives)),
+    ...(unlimited
+      ? [line('  Days Used', String(results.daysUsed))]
+      : [
+          line('  Mile Cap', results.mileCap.toLocaleString()),
+          line('  Miles Driven', results.milesDriven.toLocaleString()),
+          line('  Days Used', String(results.daysUsed)),
+        ]),
+    ...(unlimited
+      ? []
+      : [
+          '',
+          'Refund per Miles:',
+          line('  Amount Sent to Client', formatCurrency(results.refundPerMiles.amountSentToClient)),
+          line('  Client Refund to Customer', formatCurrency(results.refundPerMiles.clientRefundToCustomer)),
+          line('  Total Customer Receives', formatCurrency(results.refundPerMiles.totalCustomerReceives)),
+        ]),
     '',
     'Refund per Days:',
     line('  Amount Sent to Client', formatCurrency(results.refundPerDays.amountSentToClient)),

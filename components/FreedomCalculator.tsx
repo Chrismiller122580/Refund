@@ -9,6 +9,7 @@ import { useFreedomCalculation } from '@/hooks/useFreedomCalculation'
 import {
   FREEDOM_TERMS,
   matchFreedomTerm,
+  matchFreedomTermByDays,
   type TermRow,
 } from '@/lib/calculators/terms'
 import {
@@ -75,22 +76,32 @@ function fieldMessage(warnings: ReturnType<typeof validateFreedomInputs>, field:
   return fieldWarnings[0]?.message
 }
 
+function resolveTermLabel(inputs: FreedomInputs): string {
+  if (inputs.unlimitedMileage) {
+    return matchFreedomTermByDays(inputs.contractTermDays)
+  }
+  return matchFreedomTerm(inputs.contractTermMiles, inputs.contractTermDays)
+}
+
 export function FreedomCalculator() {
   const [inputs, setInputs] = useState<FreedomInputs>(DEFAULT_FREEDOM_INPUTS)
-  const [termLabel, setTermLabel] = useState(() =>
-    matchFreedomTerm(DEFAULT_FREEDOM_INPUTS.contractTermMiles, DEFAULT_FREEDOM_INPUTS.contractTermDays),
-  )
+  const [termLabel, setTermLabel] = useState(() => resolveTermLabel(DEFAULT_FREEDOM_INPUTS))
 
   const { data, loading, error } = useFreedomCalculation(inputs)
   const results = data?.results
   const warnings = data?.warnings ?? []
   const recommendation = data?.recommendation
+  const unlimitedMileage = inputs.unlimitedMileage
 
   const update = <K extends keyof FreedomInputs>(key: K, value: FreedomInputs[K]) => {
     setInputs((prev) => {
       const next = { ...prev, [key]: value }
-      if (key === 'contractTermMiles' || key === 'contractTermDays') {
-        setTermLabel(matchFreedomTerm(next.contractTermMiles, next.contractTermDays))
+      if (
+        key === 'contractTermMiles' ||
+        key === 'contractTermDays' ||
+        key === 'unlimitedMileage'
+      ) {
+        setTermLabel(resolveTermLabel(next))
       }
       return next
     })
@@ -100,19 +111,20 @@ export function FreedomCalculator() {
     setTermLabel(term.label)
     setInputs((prev) => ({
       ...prev,
-      contractTermMiles: term.miles ?? prev.contractTermMiles,
       contractTermDays: term.days,
+      ...(prev.unlimitedMileage ? {} : { contractTermMiles: term.miles ?? prev.contractTermMiles }),
     }))
   }
 
   const handleLoad = (loaded: FreedomInputs) => {
-    setInputs(loaded)
-    setTermLabel(matchFreedomTerm(loaded.contractTermMiles, loaded.contractTermDays))
+    const normalized = { ...loaded, unlimitedMileage: loaded.unlimitedMileage ?? false }
+    setInputs(normalized)
+    setTermLabel(resolveTermLabel(normalized))
   }
 
   const handleReset = () => {
     setInputs(DEFAULT_FREEDOM_INPUTS)
-    setTermLabel(matchFreedomTerm(DEFAULT_FREEDOM_INPUTS.contractTermMiles, DEFAULT_FREEDOM_INPUTS.contractTermDays))
+    setTermLabel(resolveTermLabel(DEFAULT_FREEDOM_INPUTS))
   }
 
   return (
@@ -125,29 +137,42 @@ export function FreedomCalculator() {
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-900">Inputs</h2>
           <TermPicker terms={FREEDOM_TERMS} selectedLabel={termLabel} onSelect={handleTermSelect} />
+          <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3">
+            <input
+              type="checkbox"
+              checked={unlimitedMileage}
+              onChange={(e) => update('unlimitedMileage', e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-sm font-medium text-slate-700">Unlimited mileage</span>
+          </label>
           <ValidationAlerts warnings={warnings} />
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Start Mileage" error={fieldMessage(warnings, 'startMileage')}>
-              <NumberInput
-                value={inputs.startMileage}
-                onChange={(v) => update('startMileage', v)}
-                hasError={hasFieldError(warnings, 'startMileage')}
-              />
-            </Field>
-            <Field label="End Mileage" error={fieldMessage(warnings, 'endMileage')}>
-              <NumberInput
-                value={inputs.endMileage}
-                onChange={(v) => update('endMileage', v)}
-                hasError={hasFieldError(warnings, 'endMileage')}
-              />
-            </Field>
-            <Field label="Contract Term Miles" error={fieldMessage(warnings, 'contractTermMiles')}>
-              <NumberInput
-                value={inputs.contractTermMiles}
-                onChange={(v) => update('contractTermMiles', v)}
-                hasError={hasFieldError(warnings, 'contractTermMiles')}
-              />
-            </Field>
+            {!unlimitedMileage && (
+              <>
+                <Field label="Start Mileage" error={fieldMessage(warnings, 'startMileage')}>
+                  <NumberInput
+                    value={inputs.startMileage}
+                    onChange={(v) => update('startMileage', v)}
+                    hasError={hasFieldError(warnings, 'startMileage')}
+                  />
+                </Field>
+                <Field label="End Mileage" error={fieldMessage(warnings, 'endMileage')}>
+                  <NumberInput
+                    value={inputs.endMileage}
+                    onChange={(v) => update('endMileage', v)}
+                    hasError={hasFieldError(warnings, 'endMileage')}
+                  />
+                </Field>
+                <Field label="Contract Term Miles" error={fieldMessage(warnings, 'contractTermMiles')}>
+                  <NumberInput
+                    value={inputs.contractTermMiles}
+                    onChange={(v) => update('contractTermMiles', v)}
+                    hasError={hasFieldError(warnings, 'contractTermMiles')}
+                  />
+                </Field>
+              </>
+            )}
             <Field label="Contract Term Days" error={fieldMessage(warnings, 'contractTermDays')}>
               <NumberInput
                 value={inputs.contractTermDays}
@@ -200,17 +225,23 @@ export function FreedomCalculator() {
           <>
           <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <dt className="text-blue-700">Mile Cap</dt>
-              <dd className="text-right font-medium text-blue-900">{results.mileCap.toLocaleString()}</dd>
-              <dt className="text-blue-700">Miles Driven</dt>
-              <dd className="text-right font-medium text-blue-900">{results.milesDriven.toLocaleString()}</dd>
+              {!unlimitedMileage && (
+                <>
+                  <dt className="text-blue-700">Mile Cap</dt>
+                  <dd className="text-right font-medium text-blue-900">{results.mileCap.toLocaleString()}</dd>
+                  <dt className="text-blue-700">Miles Driven</dt>
+                  <dd className="text-right font-medium text-blue-900">{results.milesDriven.toLocaleString()}</dd>
+                </>
+              )}
               <dt className="text-blue-700">Days Used</dt>
               <dd className="text-right font-medium text-blue-900">{results.daysUsed}</dd>
             </dl>
           </div>
 
           {recommendation && <AdvisorCard recommendation={recommendation} />}
-          <ProratedSection title="Mileage-Based Proration" showMileage {...results.miles} />
+          {!unlimitedMileage && (
+            <ProratedSection title="Mileage-Based Proration" showMileage {...results.miles} />
+          )}
           <ProratedSection title="Days-Based Proration" showMileage={false} {...results.days} />
           </>
           ) : (
@@ -232,8 +263,8 @@ export function FreedomCalculator() {
           />
         </div>
         {results && recommendation ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <ResultCard title="Refund per Miles" {...results.refundPerMiles} />
+        <div className={`grid gap-4 ${unlimitedMileage ? '' : 'md:grid-cols-2'}`}>
+          {!unlimitedMileage && <ResultCard title="Refund per Miles" {...results.refundPerMiles} />}
           <ResultCard title="Refund per Days" {...results.refundPerDays} />
         </div>
         ) : null}

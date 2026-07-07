@@ -77,31 +77,33 @@ export function validateFreedomInputs(
   validateDates(inputs.startDate, inputs.endDate, warnings)
   validateContractTermDays(inputs.contractTermDays, warnings)
 
-  if (inputs.contractTermMiles <= 0) {
-    add(warnings, {
-      id: 'invalid-contract-term-miles',
-      severity: 'error',
-      message: 'Contract term miles must be greater than zero.',
-      field: 'contractTermMiles',
-    })
-  }
+  if (!inputs.unlimitedMileage) {
+    if (inputs.contractTermMiles <= 0) {
+      add(warnings, {
+        id: 'invalid-contract-term-miles',
+        severity: 'error',
+        message: 'Contract term miles must be greater than zero.',
+        field: 'contractTermMiles',
+      })
+    }
 
-  if (inputs.endMileage < inputs.startMileage) {
-    add(warnings, {
-      id: 'negative-miles-driven',
-      severity: 'error',
-      message: 'End mileage cannot be less than start mileage.',
-      field: 'endMileage',
-    })
-  }
+    if (inputs.endMileage < inputs.startMileage) {
+      add(warnings, {
+        id: 'negative-miles-driven',
+        severity: 'error',
+        message: 'End mileage cannot be less than start mileage.',
+        field: 'endMileage',
+      })
+    }
 
-  if (inputs.endMileage > results.mileCap) {
-    add(warnings, {
-      id: 'mile-cap-exceeded',
-      severity: 'warning',
-      message: `End mileage (${inputs.endMileage.toLocaleString()}) exceeds the mile cap (${results.mileCap.toLocaleString()}).`,
-      field: 'endMileage',
-    })
+    if (inputs.endMileage > results.mileCap) {
+      add(warnings, {
+        id: 'mile-cap-exceeded',
+        severity: 'warning',
+        message: `End mileage (${inputs.endMileage.toLocaleString()}) exceeds the mile cap (${results.mileCap.toLocaleString()}).`,
+        field: 'endMileage',
+      })
+    }
   }
 
   if (inputs.cost <= 0) {
@@ -122,12 +124,14 @@ export function validateFreedomInputs(
     })
   }
 
-  validateNegativeRefund(
-    'negative-refund-miles',
-    'Refund per Miles',
-    results.refundPerMiles.totalCustomerReceives,
-    warnings,
-  )
+  if (!inputs.unlimitedMileage) {
+    validateNegativeRefund(
+      'negative-refund-miles',
+      'Refund per Miles',
+      results.refundPerMiles.totalCustomerReceives,
+      warnings,
+    )
+  }
   validateNegativeRefund(
     'negative-refund-days',
     'Refund per Days',

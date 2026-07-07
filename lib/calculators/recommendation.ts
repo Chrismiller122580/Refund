@@ -1,4 +1,4 @@
-import type { FreedomResults } from './freedom'
+import type { FreedomInputs, FreedomResults } from './freedom'
 import type { ValidationWarning } from './validation'
 
 export type RefundPath = 'miles' | 'days'
@@ -16,10 +16,24 @@ export interface FreedomRecommendation {
 export function getFreedomRecommendation(
   results: FreedomResults,
   warnings: ValidationWarning[],
+  inputs: FreedomInputs,
 ): FreedomRecommendation {
   const milesTotal = results.refundPerMiles.totalCustomerReceives
   const daysTotal = results.refundPerDays.totalCustomerReceives
   const difference = Math.abs(daysTotal - milesTotal)
+
+  if (inputs.unlimitedMileage) {
+    const reason = 'Unlimited mileage product — refund is calculated by time only.'
+    return {
+      recommended: 'days',
+      milesTotal,
+      daysTotal,
+      difference,
+      milesDisqualified: true,
+      milesDisqualifyReason: reason,
+      message: `Use the days-based path. ${reason}`,
+    }
+  }
 
   const mileCapWarning = warnings.find((w) => w.id === 'mile-cap-exceeded')
   const negativeMilesWarning = warnings.find((w) => w.id === 'negative-miles-driven')

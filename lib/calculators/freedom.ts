@@ -11,6 +11,7 @@ export interface FreedomInputs {
   markup: number
   deductible: number
   approvedClaimAmount: number
+  unlimitedMileage: boolean
 }
 
 export interface ProratedBreakdown {
@@ -38,17 +39,23 @@ export interface FreedomResults {
   refundPerDays: RefundBreakdown
 }
 
-export function calculateFreedom(inputs: FreedomInputs): FreedomResults {
-  const mileCap = inputs.startMileage + inputs.contractTermMiles
-  const milesDriven = inputs.endMileage - inputs.startMileage
-  const daysUsed = datedifDays(inputs.startDate, inputs.endDate)
+const EMPTY_PRORATED: ProratedBreakdown = {
+  mileagePerDay: 0,
+  daysPerDiem: 0,
+  costPerMile: 0,
+  ourPercent: 0,
+  fwProratedProfit: 0,
+  clientProratedProfit: 0,
+}
 
-  const mileagePerDay = inputs.contractTermMiles / inputs.contractTermDays
-  const daysPerDiemMiles = inputs.cost / inputs.contractTermDays
-  const costPerMile = daysPerDiemMiles / mileagePerDay
-  const fwProratedProfitMiles = costPerMile * milesDriven
-  const ourPercentMiles = fwProratedProfitMiles / inputs.cost
-  const clientProratedProfitMiles = inputs.markup * ourPercentMiles
+const EMPTY_REFUND: RefundBreakdown = {
+  amountSentToClient: 0,
+  clientRefundToCustomer: 0,
+  totalCustomerReceives: 0,
+}
+
+export function calculateFreedom(inputs: FreedomInputs): FreedomResults {
+  const daysUsed = datedifDays(inputs.startDate, inputs.endDate)
 
   const daysPerDiem = inputs.cost / inputs.contractTermDays
   const fwProratedProfitDays = daysPerDiem * daysUsed
@@ -57,14 +64,6 @@ export function calculateFreedom(inputs: FreedomInputs): FreedomResults {
 
   const deductions = inputs.deductible + inputs.approvedClaimAmount
 
-  const refundPerMiles: RefundBreakdown = {
-    amountSentToClient: inputs.cost - fwProratedProfitMiles - deductions,
-    clientRefundToCustomer: inputs.markup - clientProratedProfitMiles,
-    totalCustomerReceives: 0,
-  }
-  refundPerMiles.totalCustomerReceives =
-    refundPerMiles.amountSentToClient + refundPerMiles.clientRefundToCustomer
-
   const refundPerDays: RefundBreakdown = {
     amountSentToClient: inputs.cost - fwProratedProfitDays - deductions,
     clientRefundToCustomer: inputs.markup - clientProratedProfitDays,
@@ -72,6 +71,43 @@ export function calculateFreedom(inputs: FreedomInputs): FreedomResults {
   }
   refundPerDays.totalCustomerReceives =
     refundPerDays.amountSentToClient + refundPerDays.clientRefundToCustomer
+
+  if (inputs.unlimitedMileage) {
+    return {
+      mileCap: 0,
+      milesDriven: 0,
+      daysUsed,
+      miles: EMPTY_PRORATED,
+      days: {
+        mileagePerDay: 0,
+        daysPerDiem,
+        costPerMile: 0,
+        ourPercent: ourPercentDays,
+        fwProratedProfit: fwProratedProfitDays,
+        clientProratedProfit: clientProratedProfitDays,
+      },
+      refundPerMiles: EMPTY_REFUND,
+      refundPerDays,
+    }
+  }
+
+  const mileCap = inputs.startMileage + inputs.contractTermMiles
+  const milesDriven = inputs.endMileage - inputs.startMileage
+
+  const mileagePerDay = inputs.contractTermMiles / inputs.contractTermDays
+  const daysPerDiemMiles = inputs.cost / inputs.contractTermDays
+  const costPerMile = daysPerDiemMiles / mileagePerDay
+  const fwProratedProfitMiles = costPerMile * milesDriven
+  const ourPercentMiles = fwProratedProfitMiles / inputs.cost
+  const clientProratedProfitMiles = inputs.markup * ourPercentMiles
+
+  const refundPerMiles: RefundBreakdown = {
+    amountSentToClient: inputs.cost - fwProratedProfitMiles - deductions,
+    clientRefundToCustomer: inputs.markup - clientProratedProfitMiles,
+    totalCustomerReceives: 0,
+  }
+  refundPerMiles.totalCustomerReceives =
+    refundPerMiles.amountSentToClient + refundPerMiles.clientRefundToCustomer
 
   return {
     mileCap,
@@ -109,6 +145,7 @@ export const DEFAULT_FREEDOM_INPUTS: FreedomInputs = {
   markup: 0,
   deductible: 0,
   approvedClaimAmount: 0,
+  unlimitedMileage: false,
 }
 
 /** Sample data from the Excel workbook — used in tests only */
@@ -123,4 +160,5 @@ export const EXAMPLE_FREEDOM_INPUTS: FreedomInputs = {
   markup: 1050,
   deductible: 50,
   approvedClaimAmount: 0,
+  unlimitedMileage: false,
 }
