@@ -1,9 +1,12 @@
 import bcrypt from 'bcryptjs'
 import { SignJWT, jwtVerify } from 'jose'
 
+export type UserRole = 'user' | 'admin'
+
 export interface TokenPayload {
   userId: string
   email: string
+  role: UserRole
 }
 
 function getSecret() {
@@ -34,6 +37,7 @@ export async function verifyToken(token: string): Promise<TokenPayload | null> {
     return {
       userId: payload.userId as string,
       email: payload.email as string,
+      role: (payload.role as UserRole) ?? 'user',
     }
   } catch {
     return null

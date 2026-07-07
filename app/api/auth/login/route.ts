@@ -22,12 +22,15 @@ export async function POST(request: Request) {
     await ensureAdminUser()
 
     const user = await findUserByEmail(normalizedEmail)
-    if (!user || !(await verifyPassword(password, user.password))) {
+    if (!user || !user.is_active || !(await verifyPassword(password, user.password))) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
-    const token = await signToken({ userId: user.id, email: user.email })
-    const response = NextResponse.json({ user: { id: user.id, email: user.email } })
+    const role = user.role ?? 'user'
+    const token = await signToken({ userId: user.id, email: user.email, role })
+    const response = NextResponse.json({
+      user: { id: user.id, email: user.email, role },
+    })
     response.cookies.set(AUTH_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

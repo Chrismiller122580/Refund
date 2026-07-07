@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/api-auth'
 import { normalizeFreedomInputs, parseJsonBody } from '@/lib/api-inputs'
 import { calculateFreedom, type FreedomInputs } from '@/lib/calculators/freedom'
 import { getFreedomRecommendation } from '@/lib/calculators/recommendation'
 import { validateFreedomInputs } from '@/lib/calculators/validation'
 
 export async function POST(request: Request) {
+  const auth = await requireAuth(request)
+  if ('error' in auth) return auth.error
+
   try {
     const raw = await parseJsonBody<Partial<FreedomInputs>>(request)
     if (raw instanceof Response) return raw

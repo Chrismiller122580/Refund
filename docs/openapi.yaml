@@ -6,10 +6,13 @@ info:
 
     Authentication uses a JWT stored in an httpOnly cookie named `token` (7-day lifetime).
     All endpoints except `POST /api/auth/login` require a valid session cookie.
-  version: 1.0.0
+  version: 1.2.0
   contact:
     name: Refund Calculators
     url: https://github.com/Chrismiller122580/Refund
+  externalDocs:
+    description: Integration guide
+    url: ./INTEGRATION.md
 
 servers:
   - url: https://refund-mocha-psi.vercel.app
@@ -22,6 +25,8 @@ tags:
     description: Freedom and GAP refund calculations
   - name: Cases
     description: Per-user saved calculator cases
+  - name: Admin
+    description: User and API key management (admin role required)
 
 paths:
   /api/auth/login:
@@ -452,6 +457,82 @@ paths:
               example:
                 error: Not found
 
+  /api/admin/users:
+    get:
+      tags: [Admin]
+      summary: List users
+      operationId: listUsers
+      security:
+        - cookieAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: User list
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Admin]
+      summary: Create user
+      operationId: createUser
+      security:
+        - cookieAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: User created
+        '403':
+          description: Forbidden
+
+  /api/admin/users/{id}:
+    patch:
+      tags: [Admin]
+      summary: Update user
+      operationId: updateUser
+      security:
+        - cookieAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: User updated
+        '404':
+          description: Not found
+
+  /api/admin/api-keys:
+    get:
+      tags: [Admin]
+      summary: List API keys
+      operationId: listApiKeys
+      security:
+        - cookieAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: API key list
+    post:
+      tags: [Admin]
+      summary: Create API key
+      operationId: createApiKey
+      security:
+        - cookieAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: API key created (secret returned once)
+
+  /api/admin/api-keys/{id}:
+    delete:
+      tags: [Admin]
+      summary: Revoke API key
+      operationId: revokeApiKey
+      security:
+        - cookieAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: Key revoked
+
 components:
   securitySchemes:
     cookieAuth:
@@ -465,6 +546,15 @@ components:
         - `secure`: true (production only)
         - `maxAge`: 604800 (7 days)
         - `path`: /
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        Bearer API key for server-to-server integration.
+        Format: `Authorization: Bearer rfnd_<secret>`
+        Alternative header: `X-API-Key: rfnd_<secret>`
+        Created via POST /api/admin/api-keys (admin only).
 
   schemas:
     ErrorResponse:
@@ -482,6 +572,7 @@ components:
       required:
         - id
         - email
+        - role
       properties:
         id:
           type: string
@@ -491,6 +582,10 @@ components:
           type: string
           format: email
           description: User email address
+        role:
+          type: string
+          enum: [user, admin]
+          description: User role
       additionalProperties: false
 
     LoginRequest:

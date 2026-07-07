@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/api-auth'
 import { normalizeGapInputs, parseJsonBody } from '@/lib/api-inputs'
 import { calculateGap, type GapInputs } from '@/lib/calculators/gap'
 import { validateGapInputs } from '@/lib/calculators/validation'
 
 export async function POST(request: Request) {
+  const auth = await requireAuth(request)
+  if ('error' in auth) return auth.error
+
   try {
     const raw = await parseJsonBody<Partial<GapInputs>>(request)
     if (raw instanceof Response) return raw

@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
 
-async function isAuthenticated(request: NextRequest) {
+const API_KEY_PREFIX = 'rfnd_'
+
+async function hasValidCookie(request: NextRequest) {
   const token = request.cookies.get('token')?.value
   if (!token) return false
   const secret = process.env.JWT_SECRET
@@ -15,12 +17,24 @@ async function isAuthenticated(request: NextRequest) {
   }
 }
 
+function hasApiKeyHeader(request: NextRequest) {
+  const authorization = request.headers.get('authorization')
+  if (authorization?.toLowerCase().startsWith('bearer ')) {
+    const token = authorization.slice(7).trim()
+    if (token.startsWith(API_KEY_PREFIX)) return true
+  }
+  const headerKey = request.headers.get('x-api-key')?.trim()
+  return Boolean(headerKey?.startsWith(API_KEY_PREFIX))
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const authed = await isAuthenticated(request)
+  const cookieAuthed = await hasValidCookie(request)
+  const apiKeyPresent = hasApiKeyHeader(request)
+  const authed = cookieAuthed || apiKeyPresent
 
   if (pathname === '/login') {
-    if (authed) return NextResponse.redirect(new URL('/app', request.url))
+    if (cookieAuthed) return NextResponse.redirect(new URL('/app', request.url))
     return NextResponse.next()
   }
 

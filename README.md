@@ -39,10 +39,24 @@ Open http://localhost:3000 for the landing page. Sign in at `/login` to access c
 | `/api/calculate/gap` | POST | GAP refund calculation |
 | `/api/cases` | GET, POST | List and save refund cases (per user) |
 | `/api/cases/:id` | PATCH, DELETE | Update or delete a saved case |
+| `/api/admin/users` | GET, POST | List/create users (admin only) |
+| `/api/admin/users/:id` | PATCH | Update user role/status (admin only) |
+| `/api/admin/api-keys` | GET, POST | List/create API keys (admin only) |
+| `/api/admin/api-keys/:id` | DELETE | Revoke API key (admin only) |
 
-All `/api/calculate/*` and `/api/cases` routes require authentication. Saved cases are stored per user in Postgres.
+All `/api/calculate/*`, `/api/cases`, and `/api/admin/*` routes require authentication. External systems should use **API keys** (see integration guide).
 
-**Full API documentation:** [docs/API.md](docs/API.md)  
+## Integration
+
+| Document | Description |
+|----------|-------------|
+| [docs/INTEGRATION.md](docs/INTEGRATION.md) | Connect external systems (API key auth, workflows) |
+| [docs/DATA_FIELDS.md](docs/DATA_FIELDS.md) | Complete field dictionary for Freedom and GAP |
+| [docs/ADMIN.md](docs/ADMIN.md) | Admin API — users and API keys |
+| [docs/examples/](docs/examples/) | Node, Python, and cURL client examples |
+| [docs/postman/Refund-API.postman_collection.json](docs/postman/Refund-API.postman_collection.json) | Postman collection |
+
+**Full API reference:** [docs/API.md](docs/API.md)  
 **OpenAPI spec:** [docs/openapi.yaml](docs/openapi.yaml)
 
 ## Deploy (Vercel)

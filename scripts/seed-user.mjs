@@ -40,12 +40,17 @@ await sql`
     created_at TIMESTAMPTZ DEFAULT now()
   )
 `
+await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user'`
+await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true`
 
 const hash = await bcrypt.hash(password, 10)
 await sql`
-  INSERT INTO users (email, password)
-  VALUES (${email.toLowerCase()}, ${hash})
-  ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password
+  INSERT INTO users (email, password, role, is_active)
+  VALUES (${email.toLowerCase()}, ${hash}, 'admin', true)
+  ON CONFLICT (email) DO UPDATE SET
+    password = EXCLUDED.password,
+    role = 'admin',
+    is_active = true
 `
 
 await sql`

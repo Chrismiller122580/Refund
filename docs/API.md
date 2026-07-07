@@ -6,17 +6,22 @@
 
 Formal API reference for integrating with the Freedom and GAP warranty refund calculators.
 
+**Integration guide:** [INTEGRATION.md](./INTEGRATION.md)  
+**Data fields:** [DATA_FIELDS.md](./DATA_FIELDS.md)  
+**Admin API:** [ADMIN.md](./ADMIN.md)
+
 ---
 
 ## Overview
 
 The Refund Calculators API provides:
 
-- **Authentication** — email/password login with session cookies
+- **Authentication** — cookie session (browser) or API key (server-to-server)
 - **Calculations** — server-side Freedom and GAP refund math (matches the Excel workbook)
 - **Saved cases** — per-user persistence of calculator inputs in Postgres
+- **Admin** — user and API key management for external integrations
 
-All endpoints except `POST /api/auth/login` require a valid session.
+All endpoints except `POST /api/auth/login` require a valid session cookie or API key.
 
 ---
 
@@ -31,6 +36,15 @@ Authentication uses a **JWT stored in an httpOnly cookie** named `token`.
 | Cookie name | `token` |
 | Lifetime | 7 days |
 | Flags | `httpOnly`, `SameSite=Lax`, `Secure` (production) |
+
+### API key (recommended for external systems)
+
+| Header | Value |
+|--------|-------|
+| `Authorization` | `Bearer rfnd_<secret>` |
+| `X-API-Key` | `rfnd_<secret>` (alternative) |
+
+API keys are created by an admin via `POST /api/admin/api-keys`. See [ADMIN.md](./ADMIN.md).
 
 ### Login flow for API clients
 
@@ -118,7 +132,8 @@ Sign in and receive a session cookie.
 {
   "user": {
     "id": "uuid",
-    "email": "admin@example.com"
+    "email": "admin@example.com",
+    "role": "admin"
   }
 }
 ```
@@ -155,10 +170,26 @@ Return the currently authenticated user.
 {
   "user": {
     "id": "uuid",
-    "email": "admin@example.com"
+    "email": "admin@example.com",
+    "role": "admin"
   }
 }
 ```
+
+---
+
+### Admin (admin role required)
+
+See [ADMIN.md](./ADMIN.md) for full setup workflow.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/admin/users` | GET | List users |
+| `/api/admin/users` | POST | Create user |
+| `/api/admin/users/{id}` | PATCH | Update role, status, or password |
+| `/api/admin/api-keys` | GET | List API keys |
+| `/api/admin/api-keys` | POST | Create API key (secret returned once) |
+| `/api/admin/api-keys/{id}` | DELETE | Revoke API key |
 
 ---
 
@@ -440,6 +471,8 @@ No explicit rate limits are configured. Use reasonable request pacing (the web U
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.2 | 2026-07-07 | API keys, admin role, user management, integration docs |
+| 1.1 | 2026-07-07 | PATCH cases, unlimited mileage, input normalization |
 | 1.0 | 2026-06-09 | Initial API: auth, Freedom/GAP calculate, cases CRUD |
 
 ---
