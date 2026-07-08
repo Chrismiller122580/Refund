@@ -1,5 +1,28 @@
 import bcrypt from 'bcryptjs'
+import { existsSync, readFileSync } from 'fs'
 import { neon } from '@neondatabase/serverless'
+
+function loadEnvFile(path) {
+  if (!existsSync(path)) return
+  for (const line of readFileSync(path, 'utf8').split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eq = trimmed.indexOf('=')
+    if (eq === -1) continue
+    const key = trimmed.slice(0, eq).trim()
+    let value = trimmed.slice(eq + 1).trim()
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1)
+    }
+    if (!process.env[key]) process.env[key] = value
+  }
+}
+
+loadEnvFile('.env.local')
+loadEnvFile('.env.example')
 
 function getDatabaseUrl() {
   const url =
@@ -64,4 +87,17 @@ await sql`
   )
 `
 
-console.log(`Seeded user: ${email}`)
+await sql`
+  CREATE TABLE IF NOT EXISTS api_keys (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    key_prefix TEXT NOT NULL,
+    key_hash TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    last_used_at TIMESTAMPTZ,
+    revoked_at TIMESTAMPTZ
+  )
+`
+
+console.log(`Seeded admin user: ${email}`)

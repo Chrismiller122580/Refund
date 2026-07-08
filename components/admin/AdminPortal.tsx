@@ -1,23 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { AppShell } from './AppShell'
-import { FreedomCalculator } from './FreedomCalculator'
-import { GapCalculator } from './GapCalculator'
+import { AppShell } from '../AppShell'
+import { ApiKeysPanel } from './ApiKeysPanel'
+import { UsersPanel } from './UsersPanel'
 
-type Tab = 'freedom' | 'gap'
+type AdminTab = 'users' | 'api-keys'
 
-export function CalculatorApp() {
-  const [tab, setTab] = useState<Tab>('freedom')
+export function AdminPortal() {
+  const [tab, setTab] = useState<AdminTab>('users')
 
   return (
     <AppShell
-      active="calculators"
+      active="admin"
       headerExtra={
         <nav className="mt-4 flex gap-2 border-t border-slate-100 pt-4">
           {([
-            ['freedom', 'Freedom'],
-            ['gap', 'GAP'],
+            ['users', 'Users'],
+            ['api-keys', 'API keys'],
           ] as const).map(([id, label]) => (
             <button
               key={id}
@@ -25,7 +25,7 @@ export function CalculatorApp() {
               onClick={() => setTab(id)}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                 tab === id
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-slate-800 text-white shadow-sm'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -35,7 +35,7 @@ export function CalculatorApp() {
         </nav>
       }
     >
-      {tab === 'freedom' ? <FreedomCalculator /> : <GapCalculator />}
+      {tab === 'users' ? <UsersPanel /> : <ApiKeysPanel />}
     </AppShell>
   )
 }
