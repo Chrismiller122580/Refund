@@ -3,12 +3,11 @@
 import { useState } from 'react'
 import { AppShell } from '../AppShell'
 import { ApiKeysPanel } from './ApiKeysPanel'
-import { IntegrationsPanel } from './IntegrationsPanel'
 import { RecordsPanel } from './RecordsPanel'
 import { UsersPanel } from './UsersPanel'
 import { adminTabActiveClass, adminTabInactiveClass } from '@/lib/ui-classes'
 
-type AdminTab = 'users' | 'api-keys' | 'records' | 'integrations'
+type AdminTab = 'users' | 'api-keys' | 'records'
 
 export function AdminPortal() {
   const [tab, setTab] = useState<AdminTab>('users')
@@ -22,7 +21,6 @@ export function AdminPortal() {
             ['users', 'Users'],
             ['records', 'Records'],
             ['api-keys', 'API keys'],
-            ['integrations', 'Integrations'],
           ] as const).map(([id, label]) => (
             <button
               key={id}
@@ -39,7 +37,6 @@ export function AdminPortal() {
       {tab === 'users' && <UsersPanel />}
       {tab === 'records' && <RecordsPanel />}
       {tab === 'api-keys' && <ApiKeysPanel />}
-      {tab === 'integrations' && <IntegrationsPanel />}
     </AppShell>
   )
 }

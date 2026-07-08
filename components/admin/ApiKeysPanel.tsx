@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { PublicApiKey, PublicUser } from '@/lib/db'
 import { codeBlockClass, inputClass, selectClass } from '@/lib/ui-classes'
 import { Field } from '../Field'
+import { IntegrationsPanel } from './IntegrationsPanel'
 
 function formatDate(value: string | null) {
   if (!value) return '—'
@@ -35,6 +36,7 @@ export function ApiKeysPanel() {
 
   const [userId, setUserId] = useState('')
   const [name, setName] = useState('')
+  const [configuringKey, setConfiguringKey] = useState<PublicApiKey | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -100,6 +102,7 @@ export function ApiKeysPanel() {
       const res = await fetch(`/api/admin/api-keys/${id}`, { method: 'DELETE' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to revoke API key')
+      setConfiguringKey((current) => (current?.id === id ? null : current))
       await refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to revoke API key')
@@ -120,8 +123,8 @@ export function ApiKeysPanel() {
       <section className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Create API key</h2>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Keys inherit the user&apos;s role. Create keys for <code className="text-xs">user</code>-role
-          service accounts, not admins.
+          Keys inherit the user&apos;s role. Each API key has its own contract integration (Freedom and GAP
+          field mappings). Configure integrations from the API keys table below.
         </p>
         <form onSubmit={handleCreate} className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="User">
@@ -252,15 +255,26 @@ export function ApiKeysPanel() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      {!key.revokedAt && (
-                        <button
-                          type="button"
-                          onClick={() => handleRevoke(key.id)}
-                          className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-50"
-                        >
-                          Revoke
-                        </button>
-                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {!key.revokedAt && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setConfiguringKey(key)}
+                              className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                            >
+                              Integration
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRevoke(key.id)}
+                              className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40"
+                            >
+                              Revoke
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -269,6 +283,17 @@ export function ApiKeysPanel() {
           </div>
         )}
       </section>
+
+      {configuringKey && (
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <IntegrationsPanel
+            apiKeyId={configuringKey.id}
+            apiKeyName={configuringKey.name}
+            userEmail={configuringKey.userEmail}
+            onClose={() => setConfiguringKey(null)}
+          />
+        </section>
+      )}
     </div>
   )
 }

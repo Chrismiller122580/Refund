@@ -6,16 +6,17 @@ import {
   ensureSchema,
   updateIntegrationFieldMapping,
 } from '@/lib/db'
+import { requireActiveApiKey } from '@/lib/integrations/admin'
 import { parseIntegrationProductType } from '@/lib/integrations/parse-type'
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ type: string; id: string }> },
+  { params }: { params: Promise<{ id: string; type: string; fieldId: string }> },
 ) {
   const auth = await requireAdmin(request)
   if ('error' in auth) return auth.error
 
-  const { type, id } = await params
+  const { id, type, fieldId } = await params
   const productType = parseIntegrationProductType(type)
   if (!productType) {
     return NextResponse.json({ error: 'Invalid integration type' }, { status: 400 })
@@ -25,7 +26,12 @@ export async function PATCH(
   if (body instanceof Response) return body
 
   await ensureSchema()
-  const mapping = await updateIntegrationFieldMapping(productType, id, body)
+  const keyResult = await requireActiveApiKey(id)
+  if (!keyResult.ok) {
+    return NextResponse.json({ error: keyResult.message }, { status: keyResult.status })
+  }
+
+  const mapping = await updateIntegrationFieldMapping(id, productType, fieldId, body)
   if (!mapping) {
     return NextResponse.json({ error: 'Mapping not found' }, { status: 404 })
   }
@@ -34,20 +40,25 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ type: string; id: string }> },
+  _request: Request,
+  { params }: { params: Promise<{ id: string; type: string; fieldId: string }> },
 ) {
-  const auth = await requireAdmin(request)
+  const auth = await requireAdmin(_request)
   if ('error' in auth) return auth.error
 
-  const { type, id } = await params
+  const { id, type, fieldId } = await params
   const productType = parseIntegrationProductType(type)
   if (!productType) {
     return NextResponse.json({ error: 'Invalid integration type' }, { status: 400 })
   }
 
   await ensureSchema()
-  const deleted = await deleteIntegrationFieldMapping(productType, id)
+  const keyResult = await requireActiveApiKey(id)
+  if (!keyResult.ok) {
+    return NextResponse.json({ error: keyResult.message }, { status: keyResult.status })
+  }
+
+  const deleted = await deleteIntegrationFieldMapping(id, productType, fieldId)
   if (!deleted) {
     return NextResponse.json({ error: 'Mapping not found' }, { status: 404 })
   }

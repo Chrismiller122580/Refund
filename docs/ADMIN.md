@@ -135,13 +135,13 @@ Revoke a key immediately. Revoked keys return `401` on use.
 
 ## Integrations (contract pull)
 
-Configure in the admin portal under **Integrations**, or via API. Freedom and GAP each have their own connection and field mappings.
+Configure in the admin portal under **API keys → Integration** for each key, or via API. Each API key has its own Freedom and GAP connection and field mappings.
 
-### `GET /api/admin/integrations/{type}`
+### `GET /api/admin/api-keys/{id}/integrations/{type}`
 
-`type` is `freedom` or `gap`. Returns connection settings, field mappings, and the allowed field catalog.
+`type` is `freedom` or `gap`. Returns the API key, connection settings, field mappings, and the allowed field catalog.
 
-### `PUT /api/admin/integrations/{type}`
+### `PUT /api/admin/api-keys/{id}/integrations/{type}`
 
 Upsert connection settings:
 
@@ -161,13 +161,15 @@ Store secrets in Vercel env vars — the API stores only the env var name.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `POST` | `/api/admin/integrations/{type}/fields` | Add mapping `{ "internalField", "externalField" }` |
-| `PATCH` | `/api/admin/integrations/{type}/fields/{id}` | Update `externalField` or `enabled` |
-| `DELETE` | `/api/admin/integrations/{type}/fields/{id}` | Remove mapping |
+| `POST` | `/api/admin/api-keys/{id}/integrations/{type}/fields` | Add mapping `{ "internalField", "externalField" }` |
+| `PATCH` | `/api/admin/api-keys/{id}/integrations/{type}/fields/{fieldId}` | Update `externalField` or `enabled` |
+| `DELETE` | `/api/admin/api-keys/{id}/integrations/{type}/fields/{fieldId}` | Remove mapping |
 
 Use dot notation for nested external fields (e.g. `vehicle.startMileage`).
 
-### `POST /api/admin/integrations/{type}/test`
+Contract pull endpoints (`GET /api/integrations/...`) use the **authenticated API key's** integration config.
+
+### `POST /api/admin/api-keys/{id}/integrations/{type}/test`
 
 Test pull with `{ "contractNumber": "..." }`. Returns mapped inputs and a truncated raw preview.
 

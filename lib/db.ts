@@ -98,7 +98,8 @@ export async function ensureSchema() {
   await sql`
     CREATE TABLE IF NOT EXISTS integration_connections (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      product_type TEXT NOT NULL UNIQUE CHECK (product_type IN ('freedom', 'gap')),
+      api_key_id UUID REFERENCES api_keys(id) ON DELETE CASCADE,
+      product_type TEXT NOT NULL CHECK (product_type IN ('freedom', 'gap')),
       base_url TEXT NOT NULL DEFAULT '',
       lookup_path_template TEXT NOT NULL DEFAULT '/contracts/{contractNumber}',
       auth_type TEXT NOT NULL DEFAULT 'none' CHECK (auth_type IN ('none', 'bearer', 'api_key_header', 'basic')),
@@ -107,6 +108,13 @@ export async function ensureSchema() {
       created_at TIMESTAMPTZ DEFAULT now(),
       updated_at TIMESTAMPTZ DEFAULT now()
     )
+  `
+  await sql`ALTER TABLE integration_connections ADD COLUMN IF NOT EXISTS api_key_id UUID REFERENCES api_keys(id) ON DELETE CASCADE`
+  await sql`DELETE FROM integration_connections WHERE api_key_id IS NULL`
+  await sql`ALTER TABLE integration_connections DROP CONSTRAINT IF EXISTS integration_connections_product_type_key`
+  await sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_integration_connections_api_key_product
+    ON integration_connections (api_key_id, product_type)
   `
   await sql`
     CREATE TABLE IF NOT EXISTS integration_field_mappings (
@@ -518,9 +526,40 @@ export async function deleteCaseForUser(userId: string, caseId: string): Promise
   return rows.length > 0
 }
 
+export async function findApiKeyById(id: string): Promise<PublicApiKey | null> {
+  const sql = getSql()
+  const rows = await sql`
+    SELECT
+      k.id,
+      k.user_id,
+      u.email AS user_email,
+      k.name,
+      k.key_prefix,
+      k.created_at,
+      k.last_used_at,
+      k.revoked_at
+    FROM api_keys k
+    JOIN users u ON u.id = k.user_id
+    WHERE k.id = ${id}
+  `
+  if (rows.length === 0) return null
+  const row = rows[0] as Record<string, string | null>
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    userEmail: row.user_email as string,
+    name: row.name as string,
+    keyPrefix: row.key_prefix as string,
+    createdAt: row.created_at as string,
+    lastUsedAt: row.last_used_at,
+    revokedAt: row.revoked_at,
+  }
+}
+
 function mapIntegrationConnection(row: DbIntegrationConnection): PublicIntegrationConnection {
   return {
     id: row.id,
+    apiKeyId: row.api_key_id,
     productType: row.product_type,
     baseUrl: row.base_url,
     lookupPathTemplate: row.lookup_path_template,
@@ -550,32 +589,35 @@ export interface IntegrationBundle {
 }
 
 export async function ensureIntegrationConnection(
+  apiKeyId: string,
   productType: IntegrationProductType,
 ): Promise<PublicIntegrationConnection> {
   const sql = getSql()
   const rows = await sql`
-    INSERT INTO integration_connections (product_type)
-    VALUES (${productType})
-    ON CONFLICT (product_type) DO UPDATE SET updated_at = integration_connections.updated_at
-    RETURNING id, product_type, base_url, lookup_path_template, auth_type, auth_config, is_active, created_at, updated_at
+    INSERT INTO integration_connections (api_key_id, product_type)
+    VALUES (${apiKeyId}, ${productType})
+    ON CONFLICT (api_key_id, product_type) DO UPDATE SET updated_at = integration_connections.updated_at
+    RETURNING id, api_key_id, product_type, base_url, lookup_path_template, auth_type, auth_config, is_active, created_at, updated_at
   `
   return mapIntegrationConnection(rows[0] as DbIntegrationConnection)
 }
 
 export async function getIntegrationConnection(
+  apiKeyId: string,
   productType: IntegrationProductType,
 ): Promise<PublicIntegrationConnection | null> {
   const sql = getSql()
   const rows = await sql`
-    SELECT id, product_type, base_url, lookup_path_template, auth_type, auth_config, is_active, created_at, updated_at
+    SELECT id, api_key_id, product_type, base_url, lookup_path_template, auth_type, auth_config, is_active, created_at, updated_at
     FROM integration_connections
-    WHERE product_type = ${productType}
+    WHERE api_key_id = ${apiKeyId} AND product_type = ${productType}
   `
   if (rows.length === 0) return null
   return mapIntegrationConnection(rows[0] as DbIntegrationConnection)
 }
 
 export async function upsertIntegrationConnection(
+  apiKeyId: string,
   productType: IntegrationProductType,
   updates: {
     baseUrl: string
@@ -585,7 +627,7 @@ export async function upsertIntegrationConnection(
     isActive: boolean
   },
 ): Promise<PublicIntegrationConnection> {
-  const connection = await ensureIntegrationConnection(productType)
+  const connection = await ensureIntegrationConnection(apiKeyId, productType)
   const sql = getSql()
   const rows = await sql`
     UPDATE integration_connections
@@ -597,7 +639,7 @@ export async function upsertIntegrationConnection(
       is_active = ${updates.isActive},
       updated_at = now()
     WHERE id = ${connection.id}
-    RETURNING id, product_type, base_url, lookup_path_template, auth_type, auth_config, is_active, created_at, updated_at
+    RETURNING id, api_key_id, product_type, base_url, lookup_path_template, auth_type, auth_config, is_active, created_at, updated_at
   `
   return mapIntegrationConnection(rows[0] as DbIntegrationConnection)
 }
@@ -616,18 +658,20 @@ export async function listIntegrationFieldMappings(
 }
 
 export async function getIntegrationBundle(
+  apiKeyId: string,
   productType: IntegrationProductType,
 ): Promise<IntegrationBundle | null> {
-  const connection = await getIntegrationConnection(productType)
+  const connection = await getIntegrationConnection(apiKeyId, productType)
   if (!connection) return null
   const mappings = await listIntegrationFieldMappings(connection.id)
   return { connection, mappings }
 }
 
 export async function ensureDefaultFieldMappings(
+  apiKeyId: string,
   productType: IntegrationProductType,
 ): Promise<PublicIntegrationFieldMapping[]> {
-  const connection = await ensureIntegrationConnection(productType)
+  const connection = await ensureIntegrationConnection(apiKeyId, productType)
   const existing = await listIntegrationFieldMappings(connection.id)
   if (existing.length > 0) return existing
 
@@ -645,11 +689,12 @@ export async function ensureDefaultFieldMappings(
 }
 
 export async function createIntegrationFieldMapping(
+  apiKeyId: string,
   productType: IntegrationProductType,
   internalField: string,
   externalField: string,
 ): Promise<PublicIntegrationFieldMapping> {
-  const connection = await ensureIntegrationConnection(productType)
+  const connection = await ensureIntegrationConnection(apiKeyId, productType)
   const sql = getSql()
   const rows = await sql`
     INSERT INTO integration_field_mappings (connection_id, internal_field, external_field, sort_order)
@@ -665,11 +710,12 @@ export async function createIntegrationFieldMapping(
 }
 
 export async function updateIntegrationFieldMapping(
+  apiKeyId: string,
   productType: IntegrationProductType,
   mappingId: string,
   updates: { externalField?: string; enabled?: boolean },
 ): Promise<PublicIntegrationFieldMapping | null> {
-  const connection = await getIntegrationConnection(productType)
+  const connection = await getIntegrationConnection(apiKeyId, productType)
   if (!connection) return null
 
   const existingRows = await getSql()`
@@ -692,10 +738,11 @@ export async function updateIntegrationFieldMapping(
 }
 
 export async function deleteIntegrationFieldMapping(
+  apiKeyId: string,
   productType: IntegrationProductType,
   mappingId: string,
 ): Promise<boolean> {
-  const connection = await getIntegrationConnection(productType)
+  const connection = await getIntegrationConnection(apiKeyId, productType)
   if (!connection) return false
 
   const rows = await getSql()`

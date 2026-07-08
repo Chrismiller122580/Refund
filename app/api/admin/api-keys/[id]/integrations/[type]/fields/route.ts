@@ -2,17 +2,18 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { parseJsonBody } from '@/lib/api-inputs'
 import { createIntegrationFieldMapping, ensureSchema } from '@/lib/db'
+import { requireActiveApiKey } from '@/lib/integrations/admin'
 import { getCatalogField } from '@/lib/integrations/field-catalog'
 import { parseIntegrationProductType } from '@/lib/integrations/parse-type'
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ type: string }> },
+  { params }: { params: Promise<{ id: string; type: string }> },
 ) {
   const auth = await requireAdmin(request)
   if ('error' in auth) return auth.error
 
-  const { type } = await params
+  const { id, type } = await params
   const productType = parseIntegrationProductType(type)
   if (!productType) {
     return NextResponse.json({ error: 'Invalid integration type' }, { status: 400 })
@@ -34,9 +35,14 @@ export async function POST(
   }
 
   await ensureSchema()
+  const keyResult = await requireActiveApiKey(id)
+  if (!keyResult.ok) {
+    return NextResponse.json({ error: keyResult.message }, { status: keyResult.status })
+  }
 
   try {
     const mapping = await createIntegrationFieldMapping(
+      id,
       productType,
       body.internalField,
       body.externalField,

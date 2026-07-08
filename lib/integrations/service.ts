@@ -36,11 +36,12 @@ function assertBundleReady(bundle: IntegrationBundle | null) {
 }
 
 export async function pullContractByNumber(
+  apiKeyId: string,
   productType: IntegrationProductType,
   contractNumber: string,
 ): Promise<ContractPullResult> {
-  await ensureDefaultFieldMappings(productType)
-  const bundle = assertBundleReady(await getIntegrationBundle(productType))
+  await ensureDefaultFieldMappings(apiKeyId, productType)
+  const bundle = assertBundleReady(await getIntegrationBundle(apiKeyId, productType))
   const trimmed = contractNumber.trim()
   if (!trimmed) {
     throw new Error('Contract number is required')
@@ -65,11 +66,12 @@ export async function pullContractByNumber(
 }
 
 export async function testContractPull(
+  apiKeyId: string,
   productType: IntegrationProductType,
   contractNumber: string,
 ): Promise<ContractPullTestResult> {
-  await ensureDefaultFieldMappings(productType)
-  const bundle = assertBundleReady(await getIntegrationBundle(productType))
+  await ensureDefaultFieldMappings(apiKeyId, productType)
+  const bundle = assertBundleReady(await getIntegrationBundle(apiKeyId, productType))
   const trimmed = contractNumber.trim()
   if (!trimmed) {
     throw new Error('Contract number is required')

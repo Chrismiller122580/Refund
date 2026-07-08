@@ -40,7 +40,20 @@ interface TestResult {
 
 const AUTH_TYPES: IntegrationAuthType[] = ['none', 'bearer', 'api_key_header', 'basic']
 
-export function IntegrationsPanel() {
+interface IntegrationsPanelProps {
+  apiKeyId: string
+  apiKeyName: string
+  userEmail: string
+  onClose: () => void
+}
+
+export function IntegrationsPanel({
+  apiKeyId,
+  apiKeyName,
+  userEmail,
+  onClose,
+}: IntegrationsPanelProps) {
+  const integrationBase = `/api/admin/api-keys/${apiKeyId}/integrations`
   const [productTab, setProductTab] = useState<ProductTab>('freedom')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -64,7 +77,7 @@ export function IntegrationsPanel() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/admin/integrations/${type}`)
+      const response = await fetch(`${integrationBase}/${type}`)
       const payload = await response.json()
       if (!response.ok) throw new Error(payload.error ?? 'Failed to load integration settings')
 
@@ -82,17 +95,17 @@ export function IntegrationsPanel() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [integrationBase])
 
   useEffect(() => {
     refresh(productTab)
-  }, [productTab, refresh])
+  }, [productTab, refresh, apiKeyId])
 
   const saveConnection = async () => {
     setSaving(true)
     setError(null)
     try {
-      const response = await fetch(`/api/admin/integrations/${productTab}`, {
+      const response = await fetch(`${integrationBase}/${productTab}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -120,7 +133,7 @@ export function IntegrationsPanel() {
     if (!newInternalField || !newExternalField.trim()) return
     setError(null)
     try {
-      const response = await fetch(`/api/admin/integrations/${productTab}/fields`, {
+      const response = await fetch(`${integrationBase}/${productTab}/fields`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -144,7 +157,7 @@ export function IntegrationsPanel() {
   ) => {
     setError(null)
     try {
-      const response = await fetch(`/api/admin/integrations/${productTab}/fields/${mappingId}`, {
+      const response = await fetch(`${integrationBase}/${productTab}/fields/${mappingId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
@@ -160,7 +173,7 @@ export function IntegrationsPanel() {
   const removeMapping = async (mappingId: string) => {
     setError(null)
     try {
-      const response = await fetch(`/api/admin/integrations/${productTab}/fields/${mappingId}`, {
+      const response = await fetch(`${integrationBase}/${productTab}/fields/${mappingId}`, {
         method: 'DELETE',
       })
       const payload = await response.json()
@@ -177,7 +190,7 @@ export function IntegrationsPanel() {
     setError(null)
     setTestResult(null)
     try {
-      const response = await fetch(`/api/admin/integrations/${productTab}/test`, {
+      const response = await fetch(`${integrationBase}/${productTab}/test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contractNumber: testContractNumber }),
@@ -218,6 +231,21 @@ export function IntegrationsPanel() {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Integration for {apiKeyName}
+          </h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            Contract pull settings for <span className="font-medium">{userEmail}</span> using this API key.
+            Each key has its own Freedom and GAP field mappings.
+          </p>
+        </div>
+        <button type="button" onClick={onClose} className={secondaryButtonClass}>
+          Close
+        </button>
+      </div>
+
       <div className="flex flex-wrap gap-2">
         {(['freedom', 'gap'] as const).map((tab) => (
           <button

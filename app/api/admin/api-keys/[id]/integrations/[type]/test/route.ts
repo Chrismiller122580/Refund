@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { parseJsonBody } from '@/lib/api-inputs'
+import { ensureSchema } from '@/lib/db'
+import { requireActiveApiKey } from '@/lib/integrations/admin'
 import { parseIntegrationProductType } from '@/lib/integrations/parse-type'
 import { mapIntegrationError, testContractPull } from '@/lib/integrations/service'
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ type: string }> },
+  { params }: { params: Promise<{ id: string; type: string }> },
 ) {
   const auth = await requireAdmin(request)
   if ('error' in auth) return auth.error
 
-  const { type } = await params
+  const { id, type } = await params
   const productType = parseIntegrationProductType(type)
   if (!productType) {
     return NextResponse.json({ error: 'Invalid integration type' }, { status: 400 })
@@ -24,8 +26,14 @@ export async function POST(
     return NextResponse.json({ error: 'contractNumber is required' }, { status: 400 })
   }
 
+  await ensureSchema()
+  const keyResult = await requireActiveApiKey(id)
+  if (!keyResult.ok) {
+    return NextResponse.json({ error: keyResult.message }, { status: keyResult.status })
+  }
+
   try {
-    const result = await testContractPull(productType, body.contractNumber)
+    const result = await testContractPull(id, productType, body.contractNumber)
     return NextResponse.json(result)
   } catch (error) {
     const mapped = mapIntegrationError(error)

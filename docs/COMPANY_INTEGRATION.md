@@ -116,7 +116,7 @@ curl -s -X POST "$BASE_URL/api/calculate/gap" \
 
 ### Option B — Pull by contract number
 
-If Freedom admin configured **Admin → Integrations** with your contract system's API, you can pass only a contract number. The Refund API fetches the contract, maps fields, and returns normalized inputs.
+If your Freedom admin configured **Admin → API keys → Integration** for your specific API key, you can pass only a contract number. The Refund API uses **your key's** integration settings to fetch the contract, map fields, and return normalized inputs.
 
 | Product | Endpoint |
 |---------|----------|
@@ -138,7 +138,7 @@ The pull response includes:
 | `mappedFields` | Which fields were successfully mapped from your contract API |
 | `missingRequired` | Required calculator fields that could not be mapped — your admin may need to adjust field mappings |
 
-Field mappings are configured by your Freedom admin. External field names (e.g. `ContractEffectiveDate` or `vehicle.odometerStart`) are mapped to calculator field names (e.g. `startDate`, `startMileage`).
+Field mappings are configured per API key by your Freedom admin. Each integrator's key can point at a different external system with different field names (e.g. `ContractEffectiveDate` or `vehicle.odometerStart` mapped to `startDate`, `startMileage`).
 
 ---
 

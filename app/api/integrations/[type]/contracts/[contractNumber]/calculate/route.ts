@@ -14,6 +14,13 @@ export async function POST(
   const auth = await requireAuth(request)
   if ('error' in auth) return auth.error
 
+  if (auth.ctx.authMethod !== 'api_key' || !auth.ctx.apiKeyId) {
+    return NextResponse.json(
+      { error: 'Contract pull requires API key authentication' },
+      { status: 403 },
+    )
+  }
+
   const { type, contractNumber } = await params
   const productType = parseIntegrationProductType(type)
   if (!productType) {
@@ -21,7 +28,11 @@ export async function POST(
   }
 
   try {
-    const pull = await pullContractByNumber(productType, decodeURIComponent(contractNumber))
+    const pull = await pullContractByNumber(
+      auth.ctx.apiKeyId,
+      productType,
+      decodeURIComponent(contractNumber),
+    )
     if (pull.missingRequired.length > 0) {
       return NextResponse.json(
         {

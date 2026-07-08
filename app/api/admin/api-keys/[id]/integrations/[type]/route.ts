@@ -4,9 +4,10 @@ import { parseJsonBody } from '@/lib/api-inputs'
 import {
   ensureDefaultFieldMappings,
   ensureSchema,
-  getIntegrationConnection,
+  getIntegrationBundle,
   upsertIntegrationConnection,
 } from '@/lib/db'
+import { requireActiveApiKey } from '@/lib/integrations/admin'
 import { getFieldCatalog } from '@/lib/integrations/field-catalog'
 import { parseIntegrationProductType } from '@/lib/integrations/parse-type'
 import type { IntegrationAuthType } from '@/lib/integrations/types'
@@ -15,25 +16,29 @@ const AUTH_TYPES: IntegrationAuthType[] = ['none', 'bearer', 'api_key_header', '
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ type: string }> },
+  { params }: { params: Promise<{ id: string; type: string }> },
 ) {
   const auth = await requireAdmin(_request)
   if ('error' in auth) return auth.error
 
-  const { type } = await params
+  const { id, type } = await params
   const productType = parseIntegrationProductType(type)
   if (!productType) {
     return NextResponse.json({ error: 'Invalid integration type' }, { status: 400 })
   }
 
   await ensureSchema()
-  const connection = await getIntegrationConnection(productType)
-  const mappings = connection
-    ? await ensureDefaultFieldMappings(productType)
-    : await ensureDefaultFieldMappings(productType)
+  const keyResult = await requireActiveApiKey(id)
+  if (!keyResult.ok) {
+    return NextResponse.json({ error: keyResult.message }, { status: keyResult.status })
+  }
+
+  const mappings = await ensureDefaultFieldMappings(id, productType)
+  const bundle = await getIntegrationBundle(id, productType)
 
   return NextResponse.json({
-    connection,
+    apiKey: keyResult.apiKey,
+    connection: bundle?.connection ?? null,
     mappings,
     catalog: getFieldCatalog(productType),
   })
@@ -41,12 +46,12 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ type: string }> },
+  { params }: { params: Promise<{ id: string; type: string }> },
 ) {
   const auth = await requireAdmin(request)
   if ('error' in auth) return auth.error
 
-  const { type } = await params
+  const { id, type } = await params
   const productType = parseIntegrationProductType(type)
   if (!productType) {
     return NextResponse.json({ error: 'Invalid integration type' }, { status: 400 })
@@ -74,7 +79,12 @@ export async function PUT(
   }
 
   await ensureSchema()
-  const connection = await upsertIntegrationConnection(productType, {
+  const keyResult = await requireActiveApiKey(id)
+  if (!keyResult.ok) {
+    return NextResponse.json({ error: keyResult.message }, { status: keyResult.status })
+  }
+
+  const connection = await upsertIntegrationConnection(id, productType, {
     baseUrl: body.baseUrl,
     lookupPathTemplate: body.lookupPathTemplate,
     authType,

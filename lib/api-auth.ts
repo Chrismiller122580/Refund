@@ -11,6 +11,7 @@ export interface AuthContext {
   email: string
   role: UserRole
   authMethod: AuthMethod
+  apiKeyId?: string
 }
 
 export async function getAuthContext(request: Request): Promise<AuthContext | null> {
@@ -44,6 +45,7 @@ export async function getAuthContext(request: Request): Promise<AuthContext | nu
           email: user.email,
           role: user.role ?? 'user',
           authMethod: 'api_key',
+          apiKeyId: record.id,
         }
       }
     }

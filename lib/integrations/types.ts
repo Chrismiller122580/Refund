@@ -12,6 +12,7 @@ export interface IntegrationAuthConfig {
 
 export interface DbIntegrationConnection {
   id: string
+  api_key_id: string
   product_type: IntegrationProductType
   base_url: string
   lookup_path_template: string
@@ -24,6 +25,7 @@ export interface DbIntegrationConnection {
 
 export interface PublicIntegrationConnection {
   id: string
+  apiKeyId: string
   productType: IntegrationProductType
   baseUrl: string
   lookupPathTemplate: string
