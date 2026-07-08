@@ -22,7 +22,7 @@ export function formatFreedomSummary(
 ): string {
   const unlimited = inputs.unlimitedMileage
   const rows = [
-    'FREEDOM REFUND CALCULATOR SUMMARY',
+    'VSC REFUND CALCULATOR SUMMARY',
     `Generated: ${new Date().toLocaleString()}`,
     '',
     line('Contract Term', termLabel ?? 'Custom'),
@@ -81,7 +81,7 @@ export function formatGapSummary(
   termLabel?: string,
 ): string {
   const rows = [
-    'GAP REFUND CALCULATOR SUMMARY',
+    'Gap REFUND CALCULATOR SUMMARY',
     `Generated: ${new Date().toLocaleString()}`,
     '',
     line('Contract Term', termLabel ?? 'Custom'),

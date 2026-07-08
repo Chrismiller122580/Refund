@@ -17,7 +17,7 @@ describe('formatFreedomSummary', () => {
       'Custom',
     )
 
-    expect(text).toContain('FREEDOM REFUND CALCULATOR SUMMARY')
+    expect(text).toContain('VSC REFUND CALCULATOR SUMMARY')
     expect(text).toContain('Refund per Miles')
     expect(text).toContain('Refund per Days')
     expect(text).toContain('Recommendation:')

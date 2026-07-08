@@ -160,7 +160,7 @@ export function ApiKeysPanel() {
       <section className={panelClass}>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Create API key</h2>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Keys inherit the user&apos;s role. Each API key has its own contract integration (Freedom and GAP
+          Keys inherit the user&apos;s role. Each API key has its own contract integration (VSC and Gap
           field mappings). Configure integrations from the API keys table below.
         </p>
         <form onSubmit={handleCreate} className="mt-6 space-y-4">

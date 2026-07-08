@@ -3,7 +3,14 @@
 import Link from 'next/link'
 import { useAuth } from './AuthProvider'
 import { ThemeToggle } from './ThemeToggle'
-import { tabActiveClass, tabInactiveClass } from '@/lib/ui-classes'
+import {
+  logoMarkClass,
+  secondaryButtonClass,
+  stickyHeaderClass,
+  tabActiveClass,
+  tabInactiveClass,
+  userPillClass,
+} from '@/lib/ui-classes'
 
 interface AppShellProps {
   active: 'calculators' | 'admin'
@@ -16,42 +23,37 @@ export function AppShell({ active, children, headerExtra }: AppShellProps) {
   const isAdmin = user?.role === 'admin'
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-white dark:border-slate-700 dark:bg-slate-900 dark:border-slate-800 dark:bg-slate-900">
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-50 dark:from-slate-950 dark:to-slate-900">
+      <header className={`${stickyHeaderClass} shadow-sm`}>
+        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 dark:text-slate-100">Refund Calculators</h1>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 dark:text-slate-400">
-                {active === 'admin'
-                  ? 'User, API key, and integration management'
-                  : 'Freedom and GAP warranty refund calculations'}
-              </p>
+            <div className="flex items-start gap-3">
+              <Link href="/app" className={logoMarkClass}>
+                RC
+              </Link>
+              <div>
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Refund Calculators</h1>
+                <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">
+                  {active === 'admin'
+                    ? 'User, API key, and integration management'
+                    : 'VSC and Gap refund calculations'}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 dark:text-slate-300">
-              <span>{loading ? 'Loading…' : user?.email}</span>
+            <div className="flex items-center gap-3 text-sm">
+              <span className={userPillClass}>{loading ? 'Loading…' : user?.email}</span>
               <ThemeToggle />
-              <button
-                type="button"
-                onClick={() => logout()}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950 dark:border-slate-600 dark:hover:bg-slate-800"
-              >
+              <button type="button" onClick={() => logout()} className={secondaryButtonClass}>
                 Logout
               </button>
             </div>
           </div>
-          <nav className="mt-4 flex flex-wrap gap-2">
-            <Link
-              href="/app"
-              className={active === 'calculators' ? tabActiveClass : tabInactiveClass}
-            >
+          <nav className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
+            <Link href="/app" className={active === 'calculators' ? tabActiveClass : tabInactiveClass}>
               Calculators
             </Link>
             {isAdmin && (
-              <Link
-                href="/app/admin"
-                className={active === 'admin' ? tabActiveClass : tabInactiveClass}
-              >
+              <Link href="/app/admin" className={active === 'admin' ? tabActiveClass : tabInactiveClass}>
                 Admin
               </Link>
             )}

@@ -2,16 +2,19 @@ import type { ValidationWarning, WarningSeverity } from '@/lib/calculators/valid
 
 const styles: Record<WarningSeverity, { container: string; icon: string }> = {
   error: {
-    container: 'border-red-200 bg-red-50 text-red-800',
-    icon: 'text-red-500',
+    container:
+      'border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300',
+    icon: 'text-red-500 dark:text-red-400',
   },
   warning: {
-    container: 'border-amber-200 bg-amber-50 text-amber-900',
-    icon: 'text-amber-500',
+    container:
+      'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
+    icon: 'text-amber-500 dark:text-amber-400',
   },
   info: {
-    container: 'border-blue-200 bg-blue-50 text-blue-900',
-    icon: 'text-blue-500',
+    container:
+      'border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
+    icon: 'text-blue-500 dark:text-blue-400',
   },
 }
 

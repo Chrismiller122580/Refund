@@ -1,23 +1,31 @@
 import Link from 'next/link'
 import { LoginForm } from '@/components/LoginForm'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { logoMarkClass, panelClass } from '@/lib/ui-classes'
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-      <div className="w-full max-w-md">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-slate-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950" />
+      <div className="absolute inset-0 bg-grid-subtle" />
+      <div className="absolute -right-24 top-20 h-72 w-72 rounded-full bg-blue-100/40 blur-3xl dark:bg-blue-900/20" />
+
+      <div className="relative w-full max-w-md">
         <div className="mb-6 flex items-center justify-between">
-          <Link href="/" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-xs font-bold text-white">
-              RC
-            </span>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+          >
+            <span className={logoMarkClass}>RC</span>
             <span className="text-sm font-medium">Refund Calculators</span>
           </Link>
           <ThemeToggle />
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className={panelClass}>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Sign in</h1>
-          <p className="mt-1 mb-6 text-sm text-slate-600 dark:text-slate-400">Access Freedom and GAP refund calculators</p>
+          <p className="mt-1 mb-6 text-sm text-slate-600 dark:text-slate-400">
+            Access VSC and Gap refund calculators
+          </p>
           <LoginForm />
         </div>
       </div>

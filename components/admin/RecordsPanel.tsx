@@ -6,6 +6,12 @@ import type { GapResults } from '@/lib/calculators/gap'
 import { listAllRecords, type CaseType, type SavedCase } from '@/lib/storage'
 import { inputClass, selectClass } from '@/lib/ui-classes'
 
+function formatCaseType(type: string) {
+  if (type === 'freedom') return 'VSC'
+  if (type === 'gap') return 'Gap'
+  return type
+}
+
 function formatSavedAt(value: string) {
   return new Date(value).toLocaleString('en-US', {
     month: 'short',
@@ -65,7 +71,7 @@ export function RecordsPanel() {
       <section className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Search all records</h2>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Search across every saved Freedom and GAP calculation by name, date, amount, or user.
+          Search across every saved VSC and Gap calculation by name, date, amount, or user.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <input
@@ -81,8 +87,8 @@ export function RecordsPanel() {
             className={selectClass}
           >
             <option value="">All types</option>
-            <option value="freedom">Freedom</option>
-            <option value="gap">GAP</option>
+            <option value="freedom">VSC</option>
+            <option value="gap">Gap</option>
           </select>
         </div>
       </section>
@@ -120,8 +126,8 @@ export function RecordsPanel() {
                   <tr key={record.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950/80">
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{record.name}</td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium uppercase text-slate-700 dark:text-slate-300">
-                        {record.type}
+                      <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                        {formatCaseType(record.type)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{record.userEmail ?? '—'}</td>

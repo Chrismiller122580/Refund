@@ -26,6 +26,13 @@ import { ExportMenu } from './ExportMenu'
 import { ResultCard } from './ResultCard'
 import { TermPicker } from './TermPicker'
 import { ValidationAlerts } from './ValidationAlerts'
+import {
+  calculatorPanelClass,
+  freedomAccentBorder,
+  panelHeaderClass,
+  panelSubheaderClass,
+  subtlePanelClass,
+} from '@/lib/ui-classes'
 
 function ProratedSection({
   title,
@@ -47,7 +54,7 @@ function ProratedSection({
   showMileage: boolean
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:bg-slate-800/60 p-4">
+    <div className={subtlePanelClass}>
       <h4 className="mb-3 text-sm font-semibold text-slate-800 dark:text-slate-200">{title}</h4>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         {showMileage && (
@@ -134,8 +141,11 @@ export function FreedomCalculator() {
       {loading && <p className="text-sm text-slate-500 dark:text-slate-400">Calculating…</p>}
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Inputs</h2>
+        <section className={`${calculatorPanelClass} ${freedomAccentBorder} space-y-4`}>
+          <div>
+            <h2 className={panelHeaderClass}>Inputs</h2>
+            <p className={panelSubheaderClass}>Contract dates, mileage, and cost details</p>
+          </div>
           <TermPicker terms={FREEDOM_TERMS} selectedLabel={termLabel} onSelect={handleTermSelect} />
           <label className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:border-slate-700 dark:bg-slate-900 px-4 py-3">
             <input
@@ -219,22 +229,25 @@ export function FreedomCalculator() {
           </div>
         </section>
 
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Derived Values</h2>
+        <section className={`${calculatorPanelClass} space-y-4`}>
+          <div>
+            <h2 className={panelHeaderClass}>Derived Values</h2>
+            <p className={panelSubheaderClass}>Proration breakdown and advisor recommendation</p>
+          </div>
           {results ? (
           <>
-          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/30">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               {!unlimitedMileage && (
                 <>
-                  <dt className="text-blue-700">Mile Cap</dt>
-                  <dd className="text-right font-medium text-blue-900">{results.mileCap.toLocaleString()}</dd>
-                  <dt className="text-blue-700">Miles Driven</dt>
-                  <dd className="text-right font-medium text-blue-900">{results.milesDriven.toLocaleString()}</dd>
+              <dt className="text-blue-700 dark:text-blue-300">Mile Cap</dt>
+              <dd className="text-right font-medium text-blue-900 dark:text-blue-100">{results.mileCap.toLocaleString()}</dd>
+              <dt className="text-blue-700 dark:text-blue-300">Miles Driven</dt>
+              <dd className="text-right font-medium text-blue-900 dark:text-blue-100">{results.milesDriven.toLocaleString()}</dd>
                 </>
               )}
-              <dt className="text-blue-700">Days Used</dt>
-              <dd className="text-right font-medium text-blue-900">{results.daysUsed}</dd>
+              <dt className="text-blue-700 dark:text-blue-300">Days Used</dt>
+              <dd className="text-right font-medium text-blue-900 dark:text-blue-100">{results.daysUsed}</dd>
             </dl>
           </div>
 
@@ -250,9 +263,12 @@ export function FreedomCalculator() {
         </section>
       </div>
 
-      <section className="space-y-4">
+      <section className={`${calculatorPanelClass} space-y-4`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Refund Results</h2>
+          <div>
+            <h2 className={panelHeaderClass}>Refund Results</h2>
+            <p className={panelSubheaderClass}>Dealer and customer refund breakdown</p>
+          </div>
           <ExportMenu
             filename={`freedom-refund-${new Date().toISOString().slice(0, 10)}.txt`}
             getSummary={() =>
@@ -264,8 +280,22 @@ export function FreedomCalculator() {
         </div>
         {results && recommendation ? (
         <div className={`grid gap-4 ${unlimitedMileage ? '' : 'md:grid-cols-2'}`}>
-          {!unlimitedMileage && <ResultCard title="Refund per Miles" {...results.refundPerMiles} />}
-          <ResultCard title="Refund per Days" {...results.refundPerDays} />
+          {!unlimitedMileage && (
+            <ResultCard
+              title="Refund per Miles"
+              accent="freedom"
+              recommended={recommendation.recommended === 'miles'}
+              {...results.refundPerMiles}
+            />
+          )}
+          <ResultCard
+            title="Refund per Days"
+            accent="freedom"
+            recommended={
+              recommendation.recommended === 'days' || recommendation.recommended === 'equivalent'
+            }
+            {...results.refundPerDays}
+          />
         </div>
         ) : null}
       </section>

@@ -1,6 +1,6 @@
 # Refund Calculators
 
-Freedom and GAP warranty refund calculators with JWT authentication and server-side calculation API.
+VSC and Gap refund calculators with JWT authentication and server-side calculation API.
 
 ## Setup
 
@@ -35,8 +35,8 @@ Open http://localhost:3000 for the landing page. Sign in at `/login` to access c
 | `/api/auth/login` | POST | Email/password login, sets JWT cookie |
 | `/api/auth/logout` | POST | Clears session |
 | `/api/auth/me` | GET | Current user |
-| `/api/calculate/freedom` | POST | Freedom refund calculation |
-| `/api/calculate/gap` | POST | GAP refund calculation |
+| `/api/calculate/freedom` | POST | VSC refund calculation |
+| `/api/calculate/gap` | POST | Gap refund calculation |
 | `/api/cases` | GET, POST | List and save refund cases (per user) |
 | `/api/cases/:id` | PATCH, DELETE | Update or delete a saved case |
 | `/api/admin/users` | GET, POST | List/create users (admin only) |
@@ -54,7 +54,7 @@ All `/api/calculate/*`, `/api/cases`, and `/api/admin/*` routes require authenti
 |----------|-------------|
 | **[docs/COMPANY_INTEGRATION.md](docs/COMPANY_INTEGRATION.md)** | **Company integration guide — onboarding, workflows, and field meanings** |
 | [docs/INTEGRATION.md](docs/INTEGRATION.md) | Connect external systems (API key auth, workflows) |
-| [docs/DATA_FIELDS.md](docs/DATA_FIELDS.md) | Complete field dictionary for Freedom and GAP |
+| [docs/DATA_FIELDS.md](docs/DATA_FIELDS.md) | Complete field dictionary for VSC and Gap |
 | [docs/ADMIN.md](docs/ADMIN.md) | Admin API — users, API keys, and contract pull config |
 | [docs/examples/](docs/examples/) | Node, Python, and cURL client examples |
 | [docs/postman/Refund-API.postman_collection.json](docs/postman/Refund-API.postman_collection.json) | Postman collection |

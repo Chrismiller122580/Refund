@@ -11,7 +11,15 @@ import {
   type CaseType,
   type SavedCase,
 } from '@/lib/storage'
-import { selectClass } from '@/lib/ui-classes'
+import {
+  calculatorPanelClass,
+  dangerButtonClass,
+  inputClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+  selectClass,
+  subtlePanelClass,
+} from '@/lib/ui-classes'
 
 interface CaseManagerProps<T extends FreedomInputs | GapInputs> {
   type: CaseType
@@ -128,7 +136,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
   }
 
   return (
-    <div className="space-y-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:border-slate-700 dark:bg-slate-900 p-4 shadow-sm">
+    <div className={`${calculatorPanelClass} space-y-3`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Saved records</h3>
         <input
@@ -136,7 +144,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name, date, amount…"
-          className="min-w-[200px] flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm sm:max-w-xs"
+          className={`${inputClass} min-w-[200px] flex-1 py-1.5 sm:max-w-xs`}
         />
       </div>
 
@@ -144,7 +152,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
         <button
           type="button"
           onClick={() => (showSave ? setShowSave(false) : openSave())}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
+          className={secondaryButtonClass}
         >
           {selectedId ? 'Update Record' : 'Save Record'}
         </button>
@@ -163,39 +171,33 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
           ))}
         </select>
         {selectedId && (
-          <button
-            type="button"
-            onClick={() => handleDelete(selectedId)}
-            className="rounded-lg px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50"
-          >
+          <button type="button" onClick={() => handleDelete(selectedId)} className={dangerButtonClass}>
             Delete
           </button>
         )}
-        <button
-          type="button"
-          onClick={onReset}
-          className="rounded-lg px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100"
-        >
+        <button type="button" onClick={onReset} className={secondaryButtonClass}>
           New Case
         </button>
       </div>
 
       {cases.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-slate-100">
+        <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400">
+            <thead className="bg-slate-50 text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
               <tr>
-                <th className="px-3 py-2">Name</th>
-                <th className="px-3 py-2">Dates</th>
-                <th className="px-3 py-2">Total</th>
-                <th className="px-3 py-2">Saved</th>
+                <th className="px-3 py-2 font-medium">Name</th>
+                <th className="px-3 py-2 font-medium">Dates</th>
+                <th className="px-3 py-2 font-medium">Total</th>
+                <th className="px-3 py-2 font-medium">Saved</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {cases.map((record) => (
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {cases.map((record, index) => (
                 <tr
                   key={record.id}
-                  className={`cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950 ${selectedId === record.id ? 'bg-blue-50' : ''}`}
+                  className={`cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60 ${
+                    index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/40' : ''
+                  } ${selectedId === record.id ? 'bg-blue-50 ring-1 ring-inset ring-blue-200 dark:bg-blue-950/30 dark:ring-blue-800' : ''}`}
                   onClick={() => handleLoad(record.id)}
                 >
                   <td className="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">{record.name}</td>
@@ -214,7 +216,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       {showSave && (
-        <div className="flex w-full flex-wrap items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:bg-slate-800/60 p-3 sm:w-auto">
+        <div className={`${subtlePanelClass} flex w-full flex-wrap items-center gap-2 sm:w-auto`}>
           {selectedId && (
             <span className="w-full text-xs text-slate-500 dark:text-slate-400">
               Saves inputs and full calculation results. Email sent on new records.
@@ -230,21 +232,12 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Record name"
-            className="min-w-[160px] flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+            className={`${inputClass} min-w-[160px] flex-1 py-1.5`}
           />
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-          >
+          <button type="button" onClick={handleSave} disabled={saving} className={primaryButtonClass}>
             {saving ? 'Saving…' : selectedId ? 'Update' : 'Save'}
           </button>
-          <button
-            type="button"
-            onClick={() => setShowSave(false)}
-            className="rounded-lg px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
-          >
+          <button type="button" onClick={() => setShowSave(false)} className={secondaryButtonClass}>
             Cancel
           </button>
         </div>

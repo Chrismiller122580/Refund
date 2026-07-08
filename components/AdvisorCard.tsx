@@ -28,14 +28,14 @@ export function AdvisorCard({ recommendation }: AdvisorCardProps) {
     <div
       className={`rounded-xl border p-4 ${
         recommendation.milesDisqualified
-          ? 'border-amber-300 bg-amber-50'
-          : 'border-emerald-200 bg-emerald-50'
+          ? 'border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30'
+          : 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30'
       }`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
         {isNegative && (
-          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
             Negative refund
           </span>
         )}
@@ -45,11 +45,15 @@ export function AdvisorCard({ recommendation }: AdvisorCardProps) {
         {!hideMilesPath && (
           <>
             <dt className="text-slate-500 dark:text-slate-400">Miles path total</dt>
-            <dd className="text-right font-medium text-slate-800 dark:text-slate-200">{formatCurrency(recommendation.milesTotal)}</dd>
+            <dd className="text-right font-medium text-slate-800 dark:text-slate-200">
+              {formatCurrency(recommendation.milesTotal)}
+            </dd>
           </>
         )}
         <dt className="text-slate-500 dark:text-slate-400">Days path total</dt>
-        <dd className="text-right font-medium text-slate-800 dark:text-slate-200">{formatCurrency(recommendation.daysTotal)}</dd>
+        <dd className="text-right font-medium text-slate-800 dark:text-slate-200">
+          {formatCurrency(recommendation.daysTotal)}
+        </dd>
       </dl>
     </div>
   )

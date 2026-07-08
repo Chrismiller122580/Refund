@@ -3,9 +3,9 @@ import { ThemeProvider } from '@/components/ThemeProvider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Refund Calculators — Freedom & GAP Warranty Tools',
+  title: 'Refund Calculators — VSC and Gap Tools',
   description:
-    'Calculate Freedom and GAP warranty refunds with Excel-accurate formulas, saved cases, validation, and exports.',
+    'Calculate VSC and Gap refunds with Excel-accurate formulas, saved cases, validation, and exports.',
 }
 
 const themeInitScript = `

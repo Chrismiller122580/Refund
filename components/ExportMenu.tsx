@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { copyToClipboard, downloadTextFile } from '@/lib/export'
+import { secondaryButtonClass } from '@/lib/ui-classes'
 
 interface ExportMenuProps {
   getSummary: () => string
@@ -26,21 +27,13 @@ export function ExportMenu({ getSummary, filename }: ExportMenuProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Export:</span>
-      <button
-        type="button"
-        onClick={() => run('copy')}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
-      >
+      <button type="button" onClick={() => run('copy')} className={secondaryButtonClass}>
         Copy Summary
       </button>
-      <button
-        type="button"
-        onClick={() => run('download')}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
-      >
+      <button type="button" onClick={() => run('download')} className={secondaryButtonClass}>
         Download Report
       </button>
-      {status && <span className="text-sm text-emerald-600">{status}</span>}
+      {status && <span className="text-sm text-emerald-600 dark:text-emerald-400">{status}</span>}
     </div>
   )
 }

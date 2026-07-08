@@ -337,7 +337,7 @@ export function IntegrationsPanel({
           </h2>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Contract pull settings for <span className="font-medium">{userEmail}</span> using this API key.
-            Each key has its own Freedom and GAP field mappings.
+            Each key has its own VSC and Gap field mappings.
           </p>
         </div>
         <button type="button" onClick={onClose} className={secondaryButtonClass}>
@@ -353,7 +353,7 @@ export function IntegrationsPanel({
             onClick={() => setProductTab(tab)}
             className={productTab === tab ? primaryButtonClass : secondaryButtonClass}
           >
-            {tab === 'freedom' ? 'Freedom' : 'GAP'}
+            {tab === 'freedom' ? 'VSC' : 'Gap'}
           </button>
         ))}
       </div>
@@ -371,7 +371,7 @@ export function IntegrationsPanel({
           <section className={panelClass}>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection</h2>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              Configure how {productTab === 'freedom' ? 'Freedom' : 'GAP'} contract numbers are fetched
+              Configure how {productTab === 'freedom' ? 'VSC' : 'Gap'} contract numbers are fetched
               from your external system.
             </p>
 

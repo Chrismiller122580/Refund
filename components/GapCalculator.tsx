@@ -20,6 +20,13 @@ import { ExportMenu } from './ExportMenu'
 import { ResultCard } from './ResultCard'
 import { TermPicker } from './TermPicker'
 import { ValidationAlerts } from './ValidationAlerts'
+import {
+  calculatorPanelClass,
+  gapAccentBorder,
+  panelHeaderClass,
+  panelSubheaderClass,
+  subtlePanelClass,
+} from '@/lib/ui-classes'
 
 function fieldMessage(warnings: ReturnType<typeof validateGapInputs>, field: string) {
   const fieldWarnings = warningsForField(warnings, field)
@@ -66,8 +73,11 @@ export function GapCalculator() {
       {loading && <p className="text-sm text-slate-500 dark:text-slate-400">Calculating…</p>}
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Inputs</h2>
+        <section className={`${calculatorPanelClass} ${gapAccentBorder} space-y-4`}>
+          <div>
+            <h2 className={panelHeaderClass}>Inputs</h2>
+            <p className={panelSubheaderClass}>Contract term, dates, and cost details</p>
+          </div>
           <TermPicker terms={GAP_TERMS} selectedLabel={termLabel} onSelect={handleTermSelect} />
           <ValidationAlerts warnings={warnings} />
           <div className="grid gap-4 sm:grid-cols-2">
@@ -121,18 +131,21 @@ export function GapCalculator() {
           </div>
         </section>
 
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Derived Values</h2>
+        <section className={`${calculatorPanelClass} space-y-4`}>
+          <div>
+            <h2 className={panelHeaderClass}>Derived Values</h2>
+            <p className={panelSubheaderClass}>Proration breakdown from your inputs</p>
+          </div>
           {results ? (
           <>
-          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <dt className="text-blue-700">Days Used</dt>
-              <dd className="text-right font-medium text-blue-900">{results.daysUsed}</dd>
+              <dt className="text-slate-600 dark:text-slate-400">Days Used</dt>
+              <dd className="text-right font-medium text-slate-900 dark:text-slate-100">{results.daysUsed}</dd>
             </dl>
           </div>
 
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:bg-slate-800/60 p-4">
+          <div className={subtlePanelClass}>
             <h4 className="mb-3 text-sm font-semibold text-slate-800 dark:text-slate-200">Proration</h4>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <dt className="text-slate-500 dark:text-slate-400">Days Per Diem</dt>
@@ -152,9 +165,12 @@ export function GapCalculator() {
         </section>
       </div>
 
-      <section className="space-y-4">
+      <section className={`${calculatorPanelClass} space-y-4`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Refund Results</h2>
+          <div>
+            <h2 className={panelHeaderClass}>Refund Results</h2>
+            <p className={panelSubheaderClass}>Dealer and customer refund breakdown</p>
+          </div>
           <ExportMenu
             filename={`gap-refund-${new Date().toISOString().slice(0, 10)}.txt`}
             getSummary={() => results ? formatGapSummary(inputs, results, warnings, termLabel) : ''}
@@ -162,7 +178,7 @@ export function GapCalculator() {
         </div>
         {results && (
         <div className="max-w-md">
-          <ResultCard title="Refund per Days" {...results.refund} />
+          <ResultCard title="Refund per Days" accent="gap" {...results.refund} />
         </div>
         )}
       </section>
