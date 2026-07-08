@@ -3,10 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { UserRole } from '@/lib/auth'
 import type { PublicUser } from '@/lib/db'
+import { inputClass, selectClass } from '@/lib/ui-classes'
 import { Field } from '../Field'
-
-const inputClass =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('en-US', {
@@ -117,7 +115,7 @@ export function UsersPanel() {
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as UserRole)}
-              className={inputClass}
+              className={selectClass}
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>

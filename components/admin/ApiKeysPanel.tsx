@@ -2,10 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import type { PublicApiKey, PublicUser } from '@/lib/db'
+import { inputClass, selectClass } from '@/lib/ui-classes'
 import { Field } from '../Field'
-
-const inputClass =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
 
 function formatDate(value: string | null) {
   if (!value) return '—'
@@ -131,7 +129,7 @@ export function ApiKeysPanel() {
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               required
-              className={inputClass}
+              className={selectClass}
             >
               {users.length === 0 ? (
                 <option value="">No active users</option>

@@ -10,6 +10,7 @@ import type {
 import {
   dangerButtonClass,
   inputClass,
+  selectClass,
   panelClass,
   primaryButtonClass,
   secondaryButtonClass,
@@ -277,7 +278,7 @@ export function IntegrationsPanel() {
                   Auth type
                 </span>
                 <select
-                  className={inputClass}
+                  className={selectClass}
                   value={authType}
                   onChange={(e) => setAuthType(e.target.value as IntegrationAuthType)}
                 >
@@ -395,7 +396,7 @@ export function IntegrationsPanel() {
 
             <div className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
               <select
-                className={inputClass}
+                className={selectClass}
                 value={newInternalField}
                 onChange={(e) => setNewInternalField(e.target.value)}
               >

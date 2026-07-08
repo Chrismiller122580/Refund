@@ -3,6 +3,8 @@ const inputBase =
 
 export const inputClass = `${inputBase} border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 dark:border-slate-600 dark:focus:border-blue-400`
 
+export const selectClass = inputClass
+
 export const inputErrorClass = `${inputBase} border-red-400 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500`
 
 export const numberInputClass = {

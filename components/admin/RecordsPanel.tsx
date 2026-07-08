@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { FreedomResults } from '@/lib/calculators/freedom'
 import type { GapResults } from '@/lib/calculators/gap'
 import { listAllRecords, type CaseType, type SavedCase } from '@/lib/storage'
+import { inputClass, selectClass } from '@/lib/ui-classes'
 
 function formatSavedAt(value: string) {
   return new Date(value).toLocaleString('en-US', {
@@ -72,12 +73,12 @@ export function RecordsPanel() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search records…"
-            className="min-w-[240px] flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className={`min-w-[240px] flex-1 ${inputClass}`}
           />
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as '' | CaseType)}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className={selectClass}
           >
             <option value="">All types</option>
             <option value="freedom">Freedom</option>

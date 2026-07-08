@@ -2,6 +2,7 @@
 
 import type { TermRow } from '@/lib/calculators/terms'
 import { CUSTOM_TERM_LABEL } from '@/lib/calculators/terms'
+import { selectClass } from '@/lib/ui-classes'
 
 interface TermPickerProps {
   terms: TermRow[]
@@ -22,7 +23,7 @@ export function TermPicker({ terms, selectedLabel, onSelect }: TermPickerProps) 
             const term = terms.find((t) => t.label === label)
             if (term) onSelect(term)
           }}
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className={selectClass}
         >
           {terms.map((term) => (
             <option key={term.label} value={term.label}>

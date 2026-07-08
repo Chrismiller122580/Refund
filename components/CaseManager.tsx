@@ -11,6 +11,7 @@ import {
   type CaseType,
   type SavedCase,
 } from '@/lib/storage'
+import { selectClass } from '@/lib/ui-classes'
 
 interface CaseManagerProps<T extends FreedomInputs | GapInputs> {
   type: CaseType
@@ -151,7 +152,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
           value={selectedId}
           onChange={(e) => handleLoad(e.target.value)}
           disabled={loading}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 dark:text-slate-300 disabled:opacity-50"
+          className={`${selectClass} py-1.5 disabled:opacity-50`}
         >
           <option value="">{loading ? 'Loading…' : 'Load record…'}</option>
           {cases.map((c) => (
