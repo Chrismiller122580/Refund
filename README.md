@@ -50,9 +50,10 @@ All `/api/calculate/*`, `/api/cases`, and `/api/admin/*` routes require authenti
 
 | Document | Description |
 |----------|-------------|
+| **[docs/COMPANY_INTEGRATION.md](docs/COMPANY_INTEGRATION.md)** | **Company integration guide — onboarding, workflows, and field meanings** |
 | [docs/INTEGRATION.md](docs/INTEGRATION.md) | Connect external systems (API key auth, workflows) |
 | [docs/DATA_FIELDS.md](docs/DATA_FIELDS.md) | Complete field dictionary for Freedom and GAP |
-| [docs/ADMIN.md](docs/ADMIN.md) | Admin API — users and API keys |
+| [docs/ADMIN.md](docs/ADMIN.md) | Admin API — users, API keys, and contract pull config |
 | [docs/examples/](docs/examples/) | Node, Python, and cURL client examples |
 | [docs/postman/Refund-API.postman_collection.json](docs/postman/Refund-API.postman_collection.json) | Postman collection |
 
