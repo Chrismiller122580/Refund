@@ -10,6 +10,7 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 
 | Field | Type | Required | External source (typical) | Notes |
 |-------|------|----------|---------------------------|-------|
+| `contractNumber` | string | Yes (API key) | Your contract / policy ID | Required for API-key requests; auto-saves a tracked record |
 | `startMileage` | number | Yes* | DMS / contract start odometer | Ignored when `unlimitedMileage: true` |
 | `endMileage` | number | Yes* | Cancellation odometer | Ignored when unlimited |
 | `contractTermMiles` | number | Yes* | Contract mileage allowance | Ignored when unlimited |
@@ -73,6 +74,7 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 
 | Field | Type | Required | External source (typical) |
 |-------|------|----------|---------------------------|
+| `contractNumber` | string | Yes (API key) | Your contract / policy ID |
 | `contractTermDays` | number | Yes | Contract term |
 | `startDate` | string | Yes | Contract effective date (`YYYY-MM-DD`) |
 | `endDate` | string | Yes | Cancellation date (`YYYY-MM-DD`) |

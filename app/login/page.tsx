@@ -24,9 +24,15 @@ export default function LoginPage() {
         <div className={panelClass}>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Sign in</h1>
           <p className="mt-1 mb-6 text-sm text-slate-600 dark:text-slate-400">
-            Access VSC and Gap refund calculators
+            Access calculators and API integration setup instructions
           </p>
           <LoginForm />
+          <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            Integrating a system?{' '}
+            <Link href="/docs" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+              View public API docs
+            </Link>
+          </p>
         </div>
       </div>
     </div>

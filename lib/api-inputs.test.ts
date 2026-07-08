@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { GapInputs } from './calculators/gap'
-import { normalizeFreedomInputs, normalizeGapInputs } from './api-inputs'
+import {
+  normalizeFreedomInputs,
+  normalizeGapInputs,
+  parseFreedomCalculateRequest,
+  parseGapCalculateRequest,
+} from './api-inputs'
 
 describe('normalizeFreedomInputs', () => {
   it('defaults unlimitedMileage to false when omitted', () => {
@@ -22,6 +27,31 @@ describe('normalizeFreedomInputs', () => {
   it('preserves unlimitedMileage when true', () => {
     const inputs = normalizeFreedomInputs({ unlimitedMileage: true })
     expect(inputs.unlimitedMileage).toBe(true)
+  })
+})
+
+describe('parseFreedomCalculateRequest', () => {
+  it('requires contractNumber when configured', () => {
+    const result = parseFreedomCalculateRequest({ startMileage: 100 }, { requireContractNumber: true })
+    expect(result).toEqual({ error: 'contractNumber is required' })
+  })
+
+  it('extracts contractNumber and normalizes inputs', () => {
+    const result = parseFreedomCalculateRequest(
+      { contractNumber: ' FW-1 ', startMileage: 100, endMileage: 200 },
+      { requireContractNumber: true },
+    )
+    expect('error' in result).toBe(false)
+    if ('error' in result) return
+    expect(result.contractNumber).toBe('FW-1')
+    expect(result.inputs.startMileage).toBe(100)
+  })
+})
+
+describe('parseGapCalculateRequest', () => {
+  it('requires contractNumber when configured', () => {
+    const result = parseGapCalculateRequest({ fwCost: 100 }, { requireContractNumber: true })
+    expect(result).toEqual({ error: 'contractNumber is required' })
   })
 })
 

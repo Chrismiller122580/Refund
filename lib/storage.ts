@@ -8,6 +8,7 @@ export type CaseType = 'freedom' | 'gap'
 export interface SavedCase {
   id: string
   name: string
+  contractNumber?: string
   type: CaseType
   inputs: FreedomInputs | GapInputs
   results?: FreedomResults | GapResults

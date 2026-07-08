@@ -74,7 +74,9 @@ X-API-Key: rfnd_<your-secret-key>
 
 ### Option A — Push contract data (most common)
 
-Your system maps its fields to the calculator JSON and calls the calculate endpoint directly.
+Your system maps its fields to the calculator JSON and calls the calculate endpoint directly. API-key requests require `contractNumber` and each calculation is automatically saved as a tracked record.
+
+**Public docs (no login):** `$BASE_URL/docs`
 
 **Freedom:**
 
@@ -83,6 +85,7 @@ curl -s -X POST "$BASE_URL/api/calculate/freedom" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
+    "contractNumber": "FW-12345",
     "startMileage": 101520,
     "endMileage": 204145,
     "contractTermMiles": 5000,
@@ -104,6 +107,7 @@ curl -s -X POST "$BASE_URL/api/calculate/gap" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
+    "contractNumber": "GAP-12345",
     "contractTermDays": 1095,
     "startDate": "2024-06-25",
     "endDate": "2025-10-29",

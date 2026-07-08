@@ -83,6 +83,7 @@ export async function ensureSchema() {
   await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS warnings JSONB`
   await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS recommendation JSONB`
   await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS search_text TEXT`
+  await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS contract_number TEXT`
   await sql`
     CREATE TABLE IF NOT EXISTS api_keys (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -331,6 +332,7 @@ export async function deleteApiKey(id: string): Promise<boolean> {
 interface DbCaseRow {
   id: string
   name: string
+  contract_number?: string | null
   type: CaseType
   inputs: FreedomInputs | GapInputs
   results: FreedomResults | GapResults | null
@@ -344,6 +346,7 @@ function mapCase(row: DbCaseRow): SavedCase {
   return {
     id: row.id,
     name: row.name,
+    contractNumber: row.contract_number ?? undefined,
     type: row.type,
     inputs: row.inputs,
     results: row.results ?? undefined,
@@ -378,7 +381,7 @@ export async function listCasesForUser(
   const rows = hasType
     ? search
       ? await sql`
-          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
+          SELECT c.id, c.name, c.contract_number, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
           FROM cases c
           WHERE c.user_id = ${userId}
             AND c.type = ${query.type}
@@ -387,7 +390,7 @@ export async function listCasesForUser(
           LIMIT ${limit}
         `
       : await sql`
-          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
+          SELECT c.id, c.name, c.contract_number, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
           FROM cases c
           WHERE c.user_id = ${userId} AND c.type = ${query.type}
           ORDER BY c.saved_at DESC
@@ -395,7 +398,7 @@ export async function listCasesForUser(
         `
     : search
       ? await sql`
-          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
+          SELECT c.id, c.name, c.contract_number, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
           FROM cases c
           WHERE c.user_id = ${userId}
             AND c.search_text ILIKE ${'%' + search + '%'}
@@ -403,7 +406,7 @@ export async function listCasesForUser(
           LIMIT ${limit}
         `
       : await sql`
-          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
+          SELECT c.id, c.name, c.contract_number, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
           FROM cases c
           WHERE c.user_id = ${userId}
           ORDER BY c.saved_at DESC
@@ -422,7 +425,7 @@ export async function listAllRecords(query: ListCasesQuery = {}): Promise<SavedC
   const rows = hasType
     ? search
       ? await sql`
-          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
+          SELECT c.id, c.name, c.contract_number, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
           FROM cases c
           JOIN users u ON u.id = c.user_id
           WHERE c.type = ${query.type}
@@ -431,7 +434,7 @@ export async function listAllRecords(query: ListCasesQuery = {}): Promise<SavedC
           LIMIT ${limit}
         `
       : await sql`
-          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
+          SELECT c.id, c.name, c.contract_number, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
           FROM cases c
           JOIN users u ON u.id = c.user_id
           WHERE c.type = ${query.type}
@@ -440,7 +443,7 @@ export async function listAllRecords(query: ListCasesQuery = {}): Promise<SavedC
         `
     : search
       ? await sql`
-          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
+          SELECT c.id, c.name, c.contract_number, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
           FROM cases c
           JOIN users u ON u.id = c.user_id
           WHERE c.search_text ILIKE ${'%' + search + '%'}
@@ -448,7 +451,7 @@ export async function listAllRecords(query: ListCasesQuery = {}): Promise<SavedC
           LIMIT ${limit}
         `
       : await sql`
-          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
+          SELECT c.id, c.name, c.contract_number, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
           FROM cases c
           JOIN users u ON u.id = c.user_id
           ORDER BY c.saved_at DESC
@@ -464,20 +467,23 @@ export async function createCase(
   type: CaseType,
   inputs: FreedomInputs | GapInputs,
   snapshot: RecordSnapshotData,
+  contractNumber?: string,
 ): Promise<SavedCase> {
   const sql = getSql()
   const searchText = buildSearchText(
     name,
+    contractNumber,
     type,
     inputs,
     snapshot.results,
     snapshot.recommendation,
   )
   const rows = await sql`
-    INSERT INTO cases (user_id, name, type, inputs, results, warnings, recommendation, search_text)
+    INSERT INTO cases (user_id, name, contract_number, type, inputs, results, warnings, recommendation, search_text)
     VALUES (
       ${userId},
       ${name},
+      ${contractNumber ?? null},
       ${type},
       ${JSON.stringify(inputs)}::jsonb,
       ${JSON.stringify(snapshot.results)}::jsonb,
@@ -485,7 +491,7 @@ export async function createCase(
       ${snapshot.recommendation ? JSON.stringify(snapshot.recommendation) : null}::jsonb,
       ${searchText}
     )
-    RETURNING id, name, type, inputs, results, warnings, recommendation, saved_at
+    RETURNING id, name, contract_number, type, inputs, results, warnings, recommendation, saved_at
   `
   return mapCase(rows[0] as DbCaseRow)
 }
@@ -496,7 +502,7 @@ export async function findCaseForUser(
 ): Promise<SavedCase | null> {
   const sql = getSql()
   const rows = await sql`
-    SELECT id, name, type, inputs, results, warnings, recommendation, saved_at
+    SELECT id, name, contract_number, type, inputs, results, warnings, recommendation, saved_at
     FROM cases
     WHERE id = ${caseId} AND user_id = ${userId}
   `
@@ -516,6 +522,7 @@ export async function updateCaseForUser(
   if (!existing) return null
   const searchText = buildSearchText(
     name,
+    existing.contractNumber,
     existing.type,
     inputs,
     snapshot.results,
@@ -532,7 +539,7 @@ export async function updateCaseForUser(
       search_text = ${searchText},
       saved_at = now()
     WHERE id = ${caseId} AND user_id = ${userId}
-    RETURNING id, name, type, inputs, results, warnings, recommendation, saved_at
+    RETURNING id, name, contract_number, type, inputs, results, warnings, recommendation, saved_at
   `
   if (rows.length === 0) return null
   return mapCase(rows[0] as DbCaseRow)

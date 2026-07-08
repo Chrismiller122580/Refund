@@ -20,6 +20,7 @@ session.headers.update({
 })
 
 freedom_inputs = {
+    "contractNumber": "FW-12345",
     "startMileage": 101520,
     "endMileage": 204145,
     "contractTermMiles": 5000,

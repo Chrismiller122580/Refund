@@ -34,17 +34,20 @@ export async function middleware(request: NextRequest) {
   const authed = cookieAuthed || apiKeyPresent
 
   if (pathname === '/login') {
-    if (cookieAuthed) return NextResponse.redirect(new URL('/app', request.url))
+    if (cookieAuthed) return NextResponse.redirect(new URL('/app/integration', request.url))
     return NextResponse.next()
   }
 
-  if (pathname.startsWith('/api/auth/login')) {
+  if (pathname === '/docs' || pathname.startsWith('/api/auth/login')) {
     return NextResponse.next()
   }
 
   if (!authed) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (pathname === '/') {
+      return NextResponse.next()
     }
     return NextResponse.redirect(new URL('/login', request.url))
   }
@@ -53,5 +56,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/login', '/api/:path*'],
+  matcher: ['/', '/app/:path*', '/login', '/docs', '/api/:path*'],
 }

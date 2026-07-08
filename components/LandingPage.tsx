@@ -207,6 +207,12 @@ export function LandingPage({ isAuthenticated }: LandingPageProps) {
             >
               Calculators
             </a>
+            <Link
+              href="/docs"
+              className="hidden text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 sm:inline"
+            >
+              API docs
+            </Link>
             <Link href={primaryHref} className={primaryButtonClass}>
               {isAuthenticated ? 'Open app' : 'Sign in'}
             </Link>
@@ -395,9 +401,9 @@ export function LandingPage({ isAuthenticated }: LandingPageProps) {
               <a href="#features" className="block hover:text-slate-900 dark:hover:text-slate-100">
                 Features
               </a>
-              <a href="#features" className="block hover:text-slate-900 dark:hover:text-slate-100">
-                How it works
-              </a>
+              <Link href="/docs" className="block hover:text-slate-900 dark:hover:text-slate-100">
+                API documentation
+              </Link>
             </div>
           </div>
         </div>

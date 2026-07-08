@@ -26,7 +26,7 @@ export function LoginForm() {
         return
       }
       // Full page navigation ensures the session cookie is sent
-      window.location.href = '/app'
+      window.location.href = '/app/integration'
     } catch {
       setError('Login failed. Please try again.')
     } finally {

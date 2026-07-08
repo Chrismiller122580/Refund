@@ -27,12 +27,13 @@ function primaryTotal(
 
 export function buildSearchText(
   name: string,
+  contractNumber: string | undefined,
   type: CaseType,
   inputs: FreedomInputs | GapInputs,
   results?: FreedomResults | GapResults | null,
   recommendation?: FreedomRecommendation | null,
 ): string {
-  const parts = [name, type, inputs.startDate, inputs.endDate, String(inputs.contractTermDays)]
+  const parts = [name, contractNumber, type, inputs.startDate, inputs.endDate, String(inputs.contractTermDays)]
 
   if (type === 'freedom') {
     const freedom = inputs as FreedomInputs

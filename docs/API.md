@@ -203,10 +203,15 @@ Calculate Freedom warranty refunds using mileage-based and days-based paths.
 
 **Auth required:** Yes
 
-**Request body — `FreedomInputs`:**
+**API key requests:** `contractNumber` is required. Each successful calculate auto-saves a tracked case and returns a `case` object.
+
+**Browser session requests:** `contractNumber` is optional; no auto-save on calculate.
+
+**Request body — `FreedomInputs` plus `contractNumber` (API key):**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
+| `contractNumber` | string | API key only | Contract identifier for tracking |
 | `startMileage` | number | Yes | Odometer at contract start |
 | `endMileage` | number | Yes | Odometer at cancellation |
 | `contractTermMiles` | number | Yes | Total miles allowed by contract |
@@ -223,6 +228,7 @@ Calculate Freedom warranty refunds using mileage-based and days-based paths.
 
 ```json
 {
+  "contractNumber": "FW-12345",
   "results": {
     "mileCap": 106520,
     "milesDriven": 102625,
@@ -270,9 +276,16 @@ Calculate Freedom warranty refunds using mileage-based and days-based paths.
     "milesDisqualified": true,
     "milesDisqualifyReason": "End mileage (204,145) exceeds the mile cap (106,520).",
     "message": "Use the days-based path. The mileage path is invalid: ..."
+  },
+  "case": {
+    "id": "uuid",
+    "savedAt": "2026-07-08T12:00:00.000Z",
+    "contractNumber": "FW-12345"
   }
 }
 ```
+
+`case` is included for API key requests only.
 
 **Warning severity values:** `error` | `warning` | `info`
 
@@ -286,10 +299,13 @@ Calculate GAP warranty refunds (days-based only).
 
 **Auth required:** Yes
 
-**Request body — `GapInputs`:**
+**API key requests:** `contractNumber` is required. Each successful calculate auto-saves a tracked case and returns a `case` object.
+
+**Request body — `GapInputs` plus `contractNumber` (API key):**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
+| `contractNumber` | string | API key only | Contract identifier for tracking |
 | `contractTermDays` | number | Yes | Total days in contract term |
 | `startDate` | string | Yes | Contract start date (`YYYY-MM-DD`) |
 | `endDate` | string | Yes | Cancellation date (`YYYY-MM-DD`) |
