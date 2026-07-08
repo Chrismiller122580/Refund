@@ -86,6 +86,10 @@ await sql`
     saved_at TIMESTAMPTZ DEFAULT now()
   )
 `
+await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS results JSONB`
+await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS warnings JSONB`
+await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS recommendation JSONB`
+await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS search_text TEXT`
 
 await sql`
   CREATE TABLE IF NOT EXISTS api_keys (

@@ -1,8 +1,11 @@
 import type { UserRole } from './auth'
-import type { FreedomInputs } from './calculators/freedom'
-import type { GapInputs } from './calculators/gap'
+import type { FreedomInputs, FreedomResults } from './calculators/freedom'
+import type { GapInputs, GapResults } from './calculators/gap'
+import type { FreedomRecommendation } from './calculators/recommendation'
+import type { ValidationWarning } from './calculators/validation'
 import { hashPassword } from './auth'
 import { getSql } from './db-connection'
+import { buildSearchText } from './records'
 import type { CaseType, SavedCase } from './storage'
 
 export interface DbUser {
@@ -66,6 +69,10 @@ export async function ensureSchema() {
       saved_at TIMESTAMPTZ DEFAULT now()
     )
   `
+  await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS results JSONB`
+  await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS warnings JSONB`
+  await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS recommendation JSONB`
+  await sql`ALTER TABLE cases ADD COLUMN IF NOT EXISTS search_text TEXT`
   await sql`
     CREATE TABLE IF NOT EXISTS api_keys (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -263,7 +270,11 @@ interface DbCaseRow {
   name: string
   type: CaseType
   inputs: FreedomInputs | GapInputs
+  results: FreedomResults | GapResults | null
+  warnings: ValidationWarning[] | null
+  recommendation: FreedomRecommendation | null
   saved_at: string
+  user_email?: string
 }
 
 function mapCase(row: DbCaseRow): SavedCase {
@@ -272,18 +283,115 @@ function mapCase(row: DbCaseRow): SavedCase {
     name: row.name,
     type: row.type,
     inputs: row.inputs,
+    results: row.results ?? undefined,
+    warnings: row.warnings ?? undefined,
+    recommendation: row.recommendation ?? undefined,
     savedAt: row.saved_at,
+    userEmail: row.user_email,
   }
 }
 
-export async function listCasesForUser(userId: string, type: CaseType): Promise<SavedCase[]> {
+export interface ListCasesQuery {
+  type?: CaseType
+  q?: string
+  limit?: number
+}
+
+export interface RecordSnapshotData {
+  results: FreedomResults | GapResults
+  warnings: ValidationWarning[]
+  recommendation?: FreedomRecommendation
+}
+
+export async function listCasesForUser(
+  userId: string,
+  query: ListCasesQuery = {},
+): Promise<SavedCase[]> {
   const sql = getSql()
-  const rows = await sql`
-    SELECT id, name, type, inputs, saved_at
-    FROM cases
-    WHERE user_id = ${userId} AND type = ${type}
-    ORDER BY saved_at DESC
-  `
+  const limit = Math.min(query.limit ?? 100, 200)
+  const search = query.q?.trim().toLowerCase() ?? ''
+  const hasType = query.type === 'freedom' || query.type === 'gap'
+
+  const rows = hasType
+    ? search
+      ? await sql`
+          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
+          FROM cases c
+          WHERE c.user_id = ${userId}
+            AND c.type = ${query.type}
+            AND c.search_text ILIKE ${'%' + search + '%'}
+          ORDER BY c.saved_at DESC
+          LIMIT ${limit}
+        `
+      : await sql`
+          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
+          FROM cases c
+          WHERE c.user_id = ${userId} AND c.type = ${query.type}
+          ORDER BY c.saved_at DESC
+          LIMIT ${limit}
+        `
+    : search
+      ? await sql`
+          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
+          FROM cases c
+          WHERE c.user_id = ${userId}
+            AND c.search_text ILIKE ${'%' + search + '%'}
+          ORDER BY c.saved_at DESC
+          LIMIT ${limit}
+        `
+      : await sql`
+          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at
+          FROM cases c
+          WHERE c.user_id = ${userId}
+          ORDER BY c.saved_at DESC
+          LIMIT ${limit}
+        `
+
+  return (rows as DbCaseRow[]).map(mapCase)
+}
+
+export async function listAllRecords(query: ListCasesQuery = {}): Promise<SavedCase[]> {
+  const sql = getSql()
+  const limit = Math.min(query.limit ?? 100, 200)
+  const search = query.q?.trim().toLowerCase() ?? ''
+  const hasType = query.type === 'freedom' || query.type === 'gap'
+
+  const rows = hasType
+    ? search
+      ? await sql`
+          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
+          FROM cases c
+          JOIN users u ON u.id = c.user_id
+          WHERE c.type = ${query.type}
+            AND c.search_text ILIKE ${'%' + search + '%'}
+          ORDER BY c.saved_at DESC
+          LIMIT ${limit}
+        `
+      : await sql`
+          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
+          FROM cases c
+          JOIN users u ON u.id = c.user_id
+          WHERE c.type = ${query.type}
+          ORDER BY c.saved_at DESC
+          LIMIT ${limit}
+        `
+    : search
+      ? await sql`
+          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
+          FROM cases c
+          JOIN users u ON u.id = c.user_id
+          WHERE c.search_text ILIKE ${'%' + search + '%'}
+          ORDER BY c.saved_at DESC
+          LIMIT ${limit}
+        `
+      : await sql`
+          SELECT c.id, c.name, c.type, c.inputs, c.results, c.warnings, c.recommendation, c.saved_at, u.email AS user_email
+          FROM cases c
+          JOIN users u ON u.id = c.user_id
+          ORDER BY c.saved_at DESC
+          LIMIT ${limit}
+        `
+
   return (rows as DbCaseRow[]).map(mapCase)
 }
 
@@ -292,13 +400,44 @@ export async function createCase(
   name: string,
   type: CaseType,
   inputs: FreedomInputs | GapInputs,
+  snapshot: RecordSnapshotData,
 ): Promise<SavedCase> {
   const sql = getSql()
+  const searchText = buildSearchText(
+    name,
+    type,
+    inputs,
+    snapshot.results,
+    snapshot.recommendation,
+  )
   const rows = await sql`
-    INSERT INTO cases (user_id, name, type, inputs)
-    VALUES (${userId}, ${name}, ${type}, ${JSON.stringify(inputs)}::jsonb)
-    RETURNING id, name, type, inputs, saved_at
+    INSERT INTO cases (user_id, name, type, inputs, results, warnings, recommendation, search_text)
+    VALUES (
+      ${userId},
+      ${name},
+      ${type},
+      ${JSON.stringify(inputs)}::jsonb,
+      ${JSON.stringify(snapshot.results)}::jsonb,
+      ${JSON.stringify(snapshot.warnings)}::jsonb,
+      ${snapshot.recommendation ? JSON.stringify(snapshot.recommendation) : null}::jsonb,
+      ${searchText}
+    )
+    RETURNING id, name, type, inputs, results, warnings, recommendation, saved_at
   `
+  return mapCase(rows[0] as DbCaseRow)
+}
+
+export async function findCaseForUser(
+  userId: string,
+  caseId: string,
+): Promise<SavedCase | null> {
+  const sql = getSql()
+  const rows = await sql`
+    SELECT id, name, type, inputs, results, warnings, recommendation, saved_at
+    FROM cases
+    WHERE id = ${caseId} AND user_id = ${userId}
+  `
+  if (rows.length === 0) return null
   return mapCase(rows[0] as DbCaseRow)
 }
 
@@ -307,13 +446,30 @@ export async function updateCaseForUser(
   caseId: string,
   name: string,
   inputs: FreedomInputs | GapInputs,
+  snapshot: RecordSnapshotData,
 ): Promise<SavedCase | null> {
   const sql = getSql()
+  const existing = await findCaseForUser(userId, caseId)
+  if (!existing) return null
+  const searchText = buildSearchText(
+    name,
+    existing.type,
+    inputs,
+    snapshot.results,
+    snapshot.recommendation,
+  )
   const rows = await sql`
     UPDATE cases
-    SET name = ${name}, inputs = ${JSON.stringify(inputs)}::jsonb, saved_at = now()
+    SET
+      name = ${name},
+      inputs = ${JSON.stringify(inputs)}::jsonb,
+      results = ${JSON.stringify(snapshot.results)}::jsonb,
+      warnings = ${JSON.stringify(snapshot.warnings)}::jsonb,
+      recommendation = ${snapshot.recommendation ? JSON.stringify(snapshot.recommendation) : null}::jsonb,
+      search_text = ${searchText},
+      saved_at = now()
     WHERE id = ${caseId} AND user_id = ${userId}
-    RETURNING id, name, type, inputs, saved_at
+    RETURNING id, name, type, inputs, results, warnings, recommendation, saved_at
   `
   if (rows.length === 0) return null
   return mapCase(rows[0] as DbCaseRow)

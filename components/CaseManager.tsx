@@ -1,8 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { FreedomInputs } from '@/lib/calculators/freedom'
-import type { GapInputs } from '@/lib/calculators/gap'
+import type { FreedomInputs, FreedomResults } from '@/lib/calculators/freedom'
+import type { GapInputs, GapResults } from '@/lib/calculators/gap'
 import {
   deleteCase,
   listCases,
@@ -19,6 +19,28 @@ interface CaseManagerProps<T extends FreedomInputs | GapInputs> {
   onReset: () => void
 }
 
+function formatSavedAt(value: string) {
+  return new Date(value).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function customerTotal(record: SavedCase): string | null {
+  if (!record.results) return null
+  if (record.type === 'gap') {
+    return `$${(record.results as GapResults).refund.totalCustomerReceives.toFixed(2)}`
+  }
+  const freedom = record.results as FreedomResults
+  const rec = record.recommendation
+  const total =
+    rec?.recommended === 'days' || rec?.milesDisqualified
+      ? freedom.refundPerDays.totalCustomerReceives
+      : freedom.refundPerMiles.totalCustomerReceives
+  return `$${total.toFixed(2)}`
+}
+
 export function CaseManager<T extends FreedomInputs | GapInputs>({
   type,
   inputs,
@@ -26,6 +48,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
   onReset,
 }: CaseManagerProps<T>) {
   const [cases, setCases] = useState<SavedCase[]>([])
+  const [search, setSearch] = useState('')
   const [showSave, setShowSave] = useState(false)
   const [name, setName] = useState('')
   const [selectedId, setSelectedId] = useState('')
@@ -37,17 +60,24 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
     setLoading(true)
     setError(null)
     try {
-      setCases(await listCases(type))
+      setCases(
+        await listCases({
+          type,
+          q: search.trim() || undefined,
+          limit: 50,
+        }),
+      )
     } catch {
-      setError('Failed to load saved cases')
+      setError('Failed to load saved records')
     } finally {
       setLoading(false)
     }
-  }, [type])
+  }, [type, search])
 
   useEffect(() => {
-    refresh()
-  }, [refresh])
+    const timer = setTimeout(refresh, search ? 250 : 0)
+    return () => clearTimeout(timer)
+  }, [refresh, search])
 
   const openSave = () => {
     if (selectedId) {
@@ -72,7 +102,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
       setSelectedId(saved.id)
       await refresh()
     } catch {
-      setError(selectedId ? 'Failed to update case' : 'Failed to save case')
+      setError(selectedId ? 'Failed to update record' : 'Failed to save record')
     } finally {
       setSaving(false)
     }
@@ -92,19 +122,30 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
       if (selectedId === id) setSelectedId('')
       await refresh()
     } catch {
-      setError('Failed to delete case')
+      setError('Failed to delete record')
     }
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold text-slate-900">Saved records</h3>
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name, date, amount…"
+          className="min-w-[200px] flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm sm:max-w-xs"
+        />
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={() => (showSave ? setShowSave(false) : openSave())}
           className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
-          {selectedId ? 'Update Case' : 'Save Case'}
+          {selectedId ? 'Update Record' : 'Save Record'}
         </button>
         <select
           value={selectedId}
@@ -112,10 +153,11 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
           disabled={loading}
           className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 disabled:opacity-50"
         >
-          <option value="">{loading ? 'Loading cases…' : 'Load Case…'}</option>
+          <option value="">{loading ? 'Loading…' : 'Load record…'}</option>
           {cases.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
+              {customerTotal(c) ? ` — ${customerTotal(c)}` : ''}
             </option>
           ))}
         </select>
@@ -137,18 +179,56 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
         </button>
       </div>
 
+      {cases.length > 0 && (
+        <div className="overflow-x-auto rounded-lg border border-slate-100">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-slate-500">
+              <tr>
+                <th className="px-3 py-2">Name</th>
+                <th className="px-3 py-2">Dates</th>
+                <th className="px-3 py-2">Total</th>
+                <th className="px-3 py-2">Saved</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {cases.map((record) => (
+                <tr
+                  key={record.id}
+                  className={`cursor-pointer hover:bg-slate-50 ${selectedId === record.id ? 'bg-blue-50' : ''}`}
+                  onClick={() => handleLoad(record.id)}
+                >
+                  <td className="px-3 py-2 font-medium text-slate-900">{record.name}</td>
+                  <td className="px-3 py-2 text-slate-600">
+                    {record.inputs.startDate} → {record.inputs.endDate}
+                  </td>
+                  <td className="px-3 py-2 text-slate-600">{customerTotal(record) ?? '—'}</td>
+                  <td className="px-3 py-2 text-slate-500">{formatSavedAt(record.savedAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {showSave && (
         <div className="flex w-full flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:w-auto">
           {selectedId && (
-            <span className="w-full text-xs text-slate-500">Updating the loaded case.</span>
+            <span className="w-full text-xs text-slate-500">
+              Saves inputs and full calculation results. Email sent on new records.
+            </span>
+          )}
+          {!selectedId && (
+            <span className="w-full text-xs text-slate-500">
+              Saves inputs and full calculation results. You will receive an email when created.
+            </span>
           )}
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Case name"
+            placeholder="Record name"
             className="min-w-[160px] flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
           />
           <button

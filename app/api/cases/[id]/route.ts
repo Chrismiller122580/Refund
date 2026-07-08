@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth'
 import { parseJsonBody } from '@/lib/api-inputs'
+import { buildRecordSnapshot } from '@/lib/calculate-snapshot'
 import type { FreedomInputs } from '@/lib/calculators/freedom'
 import type { GapInputs } from '@/lib/calculators/gap'
-import { deleteCaseForUser, updateCaseForUser } from '@/lib/db'
+import { deleteCaseForUser, findCaseForUser, updateCaseForUser } from '@/lib/db'
 
 export async function PATCH(
   request: Request,
@@ -24,7 +25,17 @@ export async function PATCH(
   }
 
   const { id } = await params
-  const updated = await updateCaseForUser(auth.ctx.userId, id, name.trim(), inputs)
+  const existing = await findCaseForUser(auth.ctx.userId, id)
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const snapshot = buildRecordSnapshot(existing.type, inputs)
+  const updated = await updateCaseForUser(
+    auth.ctx.userId,
+    id,
+    name.trim(),
+    inputs,
+    snapshot,
+  )
   if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   return NextResponse.json({ case: updated })

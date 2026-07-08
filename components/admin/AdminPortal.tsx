@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { AppShell } from '../AppShell'
 import { ApiKeysPanel } from './ApiKeysPanel'
+import { RecordsPanel } from './RecordsPanel'
 import { UsersPanel } from './UsersPanel'
 
-type AdminTab = 'users' | 'api-keys'
+type AdminTab = 'users' | 'api-keys' | 'records'
 
 export function AdminPortal() {
   const [tab, setTab] = useState<AdminTab>('users')
@@ -17,6 +18,7 @@ export function AdminPortal() {
         <nav className="mt-4 flex gap-2 border-t border-slate-100 pt-4">
           {([
             ['users', 'Users'],
+            ['records', 'Records'],
             ['api-keys', 'API keys'],
           ] as const).map(([id, label]) => (
             <button
@@ -35,7 +37,9 @@ export function AdminPortal() {
         </nav>
       }
     >
-      {tab === 'users' ? <UsersPanel /> : <ApiKeysPanel />}
+      {tab === 'users' && <UsersPanel />}
+      {tab === 'records' && <RecordsPanel />}
+      {tab === 'api-keys' && <ApiKeysPanel />}
     </AppShell>
   )
 }
