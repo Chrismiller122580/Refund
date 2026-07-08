@@ -222,11 +222,24 @@ export async function createUser(
 
 export async function updateUser(
   id: string,
-  updates: { role?: UserRole; is_active?: boolean; passwordHash?: string },
+  updates: { email?: string; role?: UserRole; is_active?: boolean; passwordHash?: string },
 ): Promise<PublicUser | null> {
   const sql = getSql()
   const existing = await findUserById(id)
   if (!existing) return null
+
+  let email = existing.email
+  if (updates.email !== undefined) {
+    const normalized = updates.email.toLowerCase().trim()
+    if (!normalized) {
+      throw new Error('Email is required')
+    }
+    const other = await findUserByEmail(normalized)
+    if (other && other.id !== id) {
+      throw new Error('Email already in use')
+    }
+    email = normalized
+  }
 
   const role = updates.role ?? existing.role
   const is_active = updates.is_active ?? existing.is_active
@@ -234,7 +247,7 @@ export async function updateUser(
 
   const rows = await sql`
     UPDATE users
-    SET role = ${role}, is_active = ${is_active}, password = ${password}
+    SET email = ${email}, role = ${role}, is_active = ${is_active}, password = ${password}
     WHERE id = ${id}
     RETURNING id, email, password, role, is_active, created_at
   `

@@ -72,9 +72,10 @@ Update a user.
 
 | Field | Type | Description |
 |-------|------|-------------|
+| `email` | string | New email address (must be unique) |
 | `role` | string | `user` or `admin` |
 | `is_active` | boolean | Set `false` to disable login and API key access |
-| `password` | string | New password |
+| `password` | string | New password (min 8 characters; omit to keep current) |
 
 ---
 

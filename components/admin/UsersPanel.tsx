@@ -3,7 +3,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { UserRole } from '@/lib/auth'
 import type { PublicUser } from '@/lib/db'
-import { inputClass, panelClass, primaryButtonClass, selectClass } from '@/lib/ui-classes'
+import {
+  inputClass,
+  panelClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+  selectClass,
+  subtlePanelClass,
+} from '@/lib/ui-classes'
 import { Field } from '../Field'
 
 function formatDate(value: string) {
@@ -12,6 +19,13 @@ function formatDate(value: string) {
     day: 'numeric',
     year: 'numeric',
   })
+}
+
+type UserUpdates = {
+  email?: string
+  role?: UserRole
+  is_active?: boolean
+  password?: string
 }
 
 export function UsersPanel() {
@@ -23,6 +37,12 @@ export function UsersPanel() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<UserRole>('user')
+
+  const [editingUser, setEditingUser] = useState<PublicUser | null>(null)
+  const [editEmail, setEditEmail] = useState('')
+  const [editRole, setEditRole] = useState<UserRole>('user')
+  const [editActive, setEditActive] = useState(true)
+  const [editPassword, setEditPassword] = useState('')
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -42,6 +62,24 @@ export function UsersPanel() {
   useEffect(() => {
     refresh()
   }, [refresh])
+
+  const patchUser = async (id: string, updates: UserUpdates) => {
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed to update user')
+      await refresh()
+      return true
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update user')
+      return false
+    }
+  }
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,20 +105,37 @@ export function UsersPanel() {
     }
   }
 
-  const patchUser = async (id: string, updates: { role?: UserRole; is_active?: boolean }) => {
+  const openEdit = (user: PublicUser) => {
+    setEditingUser(user)
+    setEditEmail(user.email)
+    setEditRole(user.role)
+    setEditActive(user.is_active)
+    setEditPassword('')
     setError(null)
-    try {
-      const res = await fetch(`/api/admin/users/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Failed to update user')
-      await refresh()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update user')
+  }
+
+  const closeEdit = () => {
+    setEditingUser(null)
+    setEditPassword('')
+  }
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingUser || !editEmail.trim()) return
+
+    setSaving(true)
+    const updates: UserUpdates = {
+      email: editEmail.trim(),
+      role: editRole,
+      is_active: editActive,
     }
+    if (editPassword.trim()) {
+      updates.password = editPassword
+    }
+
+    const ok = await patchUser(editingUser.id, updates)
+    setSaving(false)
+    if (ok) closeEdit()
   }
 
   return (
@@ -129,6 +184,68 @@ export function UsersPanel() {
         </form>
       </section>
 
+      {editingUser && (
+        <section className={subtlePanelClass}>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Edit user</h2>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                Update email, role, status, or reset password. Leave password blank to keep the current one.
+              </p>
+            </div>
+            <button type="button" onClick={closeEdit} className={secondaryButtonClass}>
+              Cancel
+            </button>
+          </div>
+          <form onSubmit={handleSaveEdit} className="mt-6 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Field label="Email">
+                <input
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  required
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Role">
+                <select
+                  value={editRole}
+                  onChange={(e) => setEditRole(e.target.value as UserRole)}
+                  className={selectClass}
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </Field>
+              <Field label="Status">
+                <select
+                  value={editActive ? 'active' : 'disabled'}
+                  onChange={(e) => setEditActive(e.target.value === 'active')}
+                  className={selectClass}
+                >
+                  <option value="active">Active</option>
+                  <option value="disabled">Disabled</option>
+                </select>
+              </Field>
+              <Field label="New password" hint="Optional — min 8 characters">
+                <input
+                  type="password"
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                  minLength={8}
+                  placeholder="Leave blank to keep current"
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+            <button type="submit" disabled={saving} className={primaryButtonClass}>
+              {saving ? 'Saving…' : 'Save changes'}
+            </button>
+          </form>
+        </section>
+      )}
+
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {error}
@@ -158,7 +275,12 @@ export function UsersPanel() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950/80">
+                  <tr
+                    key={user.id}
+                    className={`hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950/80 ${
+                      editingUser?.id === user.id ? 'bg-blue-50/60 dark:bg-blue-950/20' : ''
+                    }`}
+                  >
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{user.email}</td>
                     <td className="px-6 py-4">
                       <span
@@ -184,28 +306,13 @@ export function UsersPanel() {
                     </td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{formatDate(user.created_at)}</td>
                     <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            patchUser(user.id, {
-                              role: user.role === 'admin' ? 'user' : 'admin',
-                            })
-                          }
-                          className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
-                        >
-                          Make {user.role === 'admin' ? 'user' : 'admin'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            patchUser(user.id, { is_active: !user.is_active })
-                          }
-                          className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
-                        >
-                          {user.is_active ? 'Disable' : 'Enable'}
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => openEdit(user)}
+                        className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
+                      >
+                        {editingUser?.id === user.id ? 'Editing…' : 'Edit'}
+                      </button>
                     </td>
                   </tr>
                 ))}
