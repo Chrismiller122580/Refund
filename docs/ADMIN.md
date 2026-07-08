@@ -28,6 +28,8 @@ curl -b cookies.txt -X POST "$BASE_URL/api/admin/api-keys" \
 
 Response includes the full `key` — store it immediately. It cannot be retrieved later.
 
+The API key details are also **emailed to the service user's address** when `RESEND_API_KEY` and `EMAIL_FROM` are configured. The response includes `emailSent` and `emailedTo`.
+
 3. **Give the key to the external system** — never share the admin password.
 
 ---

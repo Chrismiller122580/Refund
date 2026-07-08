@@ -46,7 +46,11 @@ A Freedom Warranty administrator must complete this once per integrating company
    - Created in **Admin → API keys** or via `POST /api/admin/api-keys`
    - The full key (`rfnd_...`) is shown **once** — store it in your secrets manager
 
-3. **Share credentials securely** with your integration team
+3. **Credentials are emailed automatically** to the service user's email when an admin creates the key (requires Resend to be configured on the server)
+   - The email includes the full API key, base URL, and authentication instructions
+   - Store the key in your secrets manager — it cannot be retrieved again
+
+4. **Share credentials securely** with your integration team if needed
    - Never use the admin password for automated integrations
    - Rotate keys when staff change or systems are decommissioned
 

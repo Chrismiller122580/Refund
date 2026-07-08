@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/api-auth'
 import { generateApiKeyMaterial, hashApiKey } from '@/lib/api-keys'
 import { parseJsonBody } from '@/lib/api-inputs'
 import { createApiKeyRecord, ensureSchema, findUserById, listApiKeys } from '@/lib/db'
+import { sendApiKeyCreatedEmail } from '@/lib/email'
 
 export async function GET(request: Request) {
   const auth = await requireAdmin(request)
@@ -35,6 +36,14 @@ export async function POST(request: Request) {
   const keyHash = await hashApiKey(key)
   const record = await createApiKeyRecord(userId, name.trim(), prefix, keyHash)
 
+  const emailSent = await sendApiKeyCreatedEmail({
+    to: user.email,
+    keyName: record.name,
+    key,
+    keyPrefix: record.key_prefix,
+    createdByEmail: auth.ctx.email,
+  })
+
   return NextResponse.json({
     apiKey: {
       id: record.id,
@@ -44,5 +53,7 @@ export async function POST(request: Request) {
       createdAt: record.created_at,
       key,
     },
+    emailSent,
+    emailedTo: user.email,
   })
 }

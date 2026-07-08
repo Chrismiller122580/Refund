@@ -22,6 +22,8 @@ interface CreatedKey {
   name: string
   key: string
   keyPrefix: string
+  emailSent: boolean
+  emailedTo: string
 }
 
 export function ApiKeysPanel() {
@@ -81,6 +83,8 @@ export function ApiKeysPanel() {
         name: data.apiKey.name,
         key: data.apiKey.key,
         keyPrefix: data.apiKey.keyPrefix,
+        emailSent: data.emailSent ?? false,
+        emailedTo: data.emailedTo ?? '',
       })
       setName('')
       await refresh()
@@ -190,6 +194,11 @@ export function ApiKeysPanel() {
           <p className="mt-3 text-xs text-amber-700">
             Prefix: <span className="font-mono">{createdKey.keyPrefix}</span> · Name:{' '}
             {createdKey.name}
+            {createdKey.emailSent ? (
+              <> · Emailed to <span className="font-medium">{createdKey.emailedTo}</span></>
+            ) : createdKey.emailedTo ? (
+              <> · Email not sent (check RESEND_API_KEY / EMAIL_FROM)</>
+            ) : null}
           </p>
         </div>
       )}
