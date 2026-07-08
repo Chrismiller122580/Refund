@@ -4,7 +4,7 @@
 **Base URL:** `https://refund-mocha-psi.vercel.app`  
 **Content-Type:** `application/json`
 
-Formal API reference for integrating with the Freedom and GAP warranty refund calculators.
+Formal API reference for integrating with the VSC and Gap refund calculators. API routes and types use `freedom` and `gap` identifiers.
 
 **Integration guide:** [INTEGRATION.md](./INTEGRATION.md)  
 **Data fields:** [DATA_FIELDS.md](./DATA_FIELDS.md)  
@@ -17,7 +17,7 @@ Formal API reference for integrating with the Freedom and GAP warranty refund ca
 The Refund Calculators API provides:
 
 - **Authentication** — cookie session (browser) or API key (server-to-server)
-- **Calculations** — server-side Freedom and GAP refund math (matches the Excel workbook)
+- **Calculations** — server-side VSC (`freedom`) and Gap (`gap`) refund math (matches the Excel workbook)
 - **Saved cases** — per-user persistence of calculator inputs in Postgres
 - **Admin** — user and API key management for external integrations
 

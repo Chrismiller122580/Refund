@@ -147,7 +147,7 @@ Reinstate a revoked key:
 
 ## Integrations (contract pull)
 
-Configure in the admin portal under **API keys → Integration** for each key, or via API. Each API key has its own Freedom and GAP connection and field mappings.
+Configure in the admin portal under **API keys → Integration** for each key, or via API. Each API key has its own VSC and Gap connection and field mappings.
 
 ### `GET /api/admin/api-keys/{id}/integrations/{type}`
 

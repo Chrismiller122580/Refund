@@ -1,6 +1,6 @@
 # Company Integration Guide
 
-How external systems (CRM, DMS, dealer portals, back-office tools) connect to the Refund Calculators API to run Freedom and GAP warranty refund calculations.
+How external systems (CRM, DMS, dealer portals, back-office tools) connect to the Refund Calculators API to run VSC and Gap refund calculations.
 
 **Production base URL:** `https://refund-mocha-psi.vercel.app`
 
@@ -23,7 +23,7 @@ The Refund API supports two integration patterns:
 | **Push fields** | You already have contract data in your system | JSON with calculator input fields |
 | **Pull by contract number** | Freedom admin configured an external contract API | A Freedom or GAP contract number only |
 
-Both patterns return the same calculation results. Freedom and GAP use **different contract numbers** and **different input fields**, but several fields (dates, deductible, claims) are shared.
+Both patterns return the same calculation results. VSC (`freedom`) and Gap (`gap`) use **different contract numbers** and **different input fields**, but several fields (dates, deductible, claims) are shared.
 
 ```text
 ┌─────────────────┐     API key auth      ┌──────────────────────┐

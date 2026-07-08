@@ -6,7 +6,7 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 
 ---
 
-## Freedom calculator — request (`FreedomInputs`)
+## VSC calculator — request (`FreedomInputs`, route `freedom`)
 
 | Field | Type | Required | External source (typical) | Notes |
 |-------|------|----------|---------------------------|-------|
@@ -69,7 +69,7 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 
 ---
 
-## GAP calculator — request (`GapInputs`)
+## Gap calculator — request (`GapInputs`, route `gap`)
 
 | Field | Type | Required | External source (typical) |
 |-------|------|----------|---------------------------|

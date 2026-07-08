@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Refund Calculators API",
-    "description": "Freedom and GAP warranty refund API with cookie and API key auth.",
+    "description": "VSC and Gap refund API with cookie and API key auth. Routes use freedom/gap identifiers.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

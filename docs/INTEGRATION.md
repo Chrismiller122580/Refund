@@ -78,7 +78,7 @@ Read `recommendation.recommended` and `recommendation.daysTotal` (or `milesTotal
 
 ## Contract lookup (pull by contract number)
 
-Admins configure Freedom and GAP connections per API key in **Admin → API keys → Integration** (base URL, lookup path, auth env var, field mappings).
+Admins configure VSC and Gap connections per API key in **Admin → API keys → Integration** (base URL, lookup path, auth env var, field mappings).
 
 | Endpoint | Description |
 |----------|-------------|

@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Refund Calculators API
   description: |
-    API for Freedom and GAP warranty refund calculators.
+    API for VSC and Gap refund calculators. Routes use `freedom` and `gap` identifiers.
 
     Authentication uses a JWT stored in an httpOnly cookie named `token` (7-day lifetime).
     All endpoints except `POST /api/auth/login` require a valid session cookie.
@@ -22,7 +22,7 @@ tags:
   - name: Authentication
     description: Session management via JWT cookie
   - name: Calculations
-    description: Freedom and GAP refund calculations
+    description: VSC (freedom) and Gap (gap) refund calculations
   - name: Cases
     description: Per-user saved calculator cases
   - name: Admin
