@@ -43,6 +43,8 @@ Open http://localhost:3000 for the landing page. Sign in at `/login` to access c
 | `/api/admin/users/:id` | PATCH | Update user role/status (admin only) |
 | `/api/admin/api-keys` | GET, POST | List/create API keys (admin only) |
 | `/api/admin/api-keys/:id` | DELETE | Revoke API key (admin only) |
+| `/api/admin/api-keys/:id?permanent=true` | DELETE | Permanently delete API key (admin only) |
+| `/api/admin/api-keys/:id` | PATCH | Reinstate revoked API key (admin only) |
 
 All `/api/calculate/*`, `/api/cases`, and `/api/admin/*` routes require authentication. External systems should use **API keys** (see integration guide).
 

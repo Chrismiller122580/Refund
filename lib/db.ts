@@ -308,6 +308,26 @@ export async function revokeApiKey(id: string): Promise<boolean> {
   return rows.length > 0
 }
 
+export async function reinstateApiKey(id: string): Promise<boolean> {
+  const sql = getSql()
+  const rows = await sql`
+    UPDATE api_keys SET revoked_at = NULL
+    WHERE id = ${id} AND revoked_at IS NOT NULL
+    RETURNING id
+  `
+  return rows.length > 0
+}
+
+export async function deleteApiKey(id: string): Promise<boolean> {
+  const sql = getSql()
+  const rows = await sql`
+    DELETE FROM api_keys
+    WHERE id = ${id}
+    RETURNING id
+  `
+  return rows.length > 0
+}
+
 interface DbCaseRow {
   id: string
   name: string

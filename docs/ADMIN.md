@@ -131,6 +131,18 @@ Create a key.
 
 Revoke a key immediately. Revoked keys return `401` on use.
 
+### `DELETE /api/admin/api-keys/{id}?permanent=true`
+
+Permanently delete a key and its integration settings. This cannot be undone.
+
+### `PATCH /api/admin/api-keys/{id}`
+
+Reinstate a revoked key:
+
+```json
+{ "action": "reinstate" }
+```
+
 ---
 
 ## Integrations (contract pull)

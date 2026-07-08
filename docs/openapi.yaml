@@ -522,16 +522,43 @@ paths:
           description: API key created (secret returned once)
 
   /api/admin/api-keys/{id}:
+    patch:
+      tags: [Admin]
+      summary: Reinstate revoked API key
+      operationId: reinstateApiKey
+      security:
+        - cookieAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [reinstate]
+      responses:
+        '200':
+          description: Key reinstated
     delete:
       tags: [Admin]
-      summary: Revoke API key
+      summary: Revoke or permanently delete API key
       operationId: revokeApiKey
       security:
         - cookieAuth: []
         - apiKeyAuth: []
+      parameters:
+        - name: permanent
+          in: query
+          schema:
+            type: boolean
+          description: When true, permanently deletes the key and its integrations
       responses:
         '200':
-          description: Key revoked
+          description: Key revoked or deleted
 
 components:
   securitySchemes:

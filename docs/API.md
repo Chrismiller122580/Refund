@@ -190,6 +190,8 @@ See [ADMIN.md](./ADMIN.md) for full setup workflow.
 | `/api/admin/api-keys` | GET | List API keys |
 | `/api/admin/api-keys` | POST | Create API key (secret returned once) |
 | `/api/admin/api-keys/{id}` | DELETE | Revoke API key |
+| `/api/admin/api-keys/{id}?permanent=true` | DELETE | Permanently delete API key |
+| `/api/admin/api-keys/{id}` | PATCH | Reinstate revoked API key (`{ "action": "reinstate" }`) |
 
 ---
 

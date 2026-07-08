@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import type { PublicApiKey, PublicUser } from '@/lib/db'
-import { codeBlockClass, inputClass, selectClass } from '@/lib/ui-classes'
+import { codeBlockClass, inputClass, primaryButtonClass, selectClass } from '@/lib/ui-classes'
 import { Field } from '../Field'
 import { IntegrationsPanel } from './IntegrationsPanel'
 
@@ -109,6 +109,43 @@ export function ApiKeysPanel() {
     }
   }
 
+  const handleReinstate = async (id: string) => {
+    if (!confirm('Reinstate this API key? It will work again with the same secret.')) return
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/api-keys/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reinstate' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed to reinstate API key')
+      await refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reinstate API key')
+    }
+  }
+
+  const handleDelete = async (id: string, name: string) => {
+    if (
+      !confirm(
+        `Permanently delete "${name}"? This removes the key and its integration settings. This cannot be undone.`,
+      )
+    ) {
+      return
+    }
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/api-keys/${id}?permanent=true`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed to delete API key')
+      setConfiguringKey((current) => (current?.id === id ? null : current))
+      await refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete API key')
+    }
+  }
+
   const copyKey = async () => {
     if (!createdKey) return
     await navigator.clipboard.writeText(createdKey.key)
@@ -159,7 +196,7 @@ export function ApiKeysPanel() {
             <button
               type="submit"
               disabled={saving || users.length === 0}
-              className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className={`w-full ${primaryButtonClass}`}
             >
               {saving ? 'Creating…' : 'Create API key'}
             </button>
@@ -257,23 +294,38 @@ export function ApiKeysPanel() {
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-2">
                         {!key.revokedAt && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => setConfiguringKey(key)}
-                              className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
-                            >
-                              Integration
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleRevoke(key.id)}
-                              className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40"
-                            >
-                              Revoke
-                            </button>
-                          </>
+                          <button
+                            type="button"
+                            onClick={() => setConfiguringKey(key)}
+                            className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                          >
+                            Integration
+                          </button>
                         )}
+                        {key.revokedAt ? (
+                          <button
+                            type="button"
+                            onClick={() => handleReinstate(key.id)}
+                            className="rounded-lg border border-emerald-200 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                          >
+                            Reinstate
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleRevoke(key.id)}
+                            className="rounded-lg border border-amber-200 px-2.5 py-1 text-xs font-medium text-amber-800 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-950/40"
+                          >
+                            Revoke
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(key.id, key.name)}
+                          className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>

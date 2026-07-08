@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { CatalogField } from '@/lib/integrations/field-catalog'
 import type {
   IntegrationAuthType,
@@ -38,7 +38,25 @@ interface TestResult {
   error?: string
 }
 
+type DraftMapping = {
+  clientId: string
+  id?: string
+  internalField: string
+  externalField: string
+  enabled: boolean
+}
+
 const AUTH_TYPES: IntegrationAuthType[] = ['none', 'bearer', 'api_key_header', 'basic']
+
+function toDraftMappings(mappings: PublicIntegrationFieldMapping[]): DraftMapping[] {
+  return mappings.map((mapping) => ({
+    clientId: mapping.id,
+    id: mapping.id,
+    internalField: mapping.internalField,
+    externalField: mapping.externalField,
+    enabled: mapping.enabled,
+  }))
+}
 
 interface IntegrationsPanelProps {
   apiKeyId: string
@@ -68,6 +86,17 @@ export function IntegrationsPanel({
   const [headerName, setHeaderName] = useState('X-API-Key')
   const [isActive, setIsActive] = useState(false)
 
+  const [savedMappings, setSavedMappings] = useState<DraftMapping[]>([])
+  const [draftMappings, setDraftMappings] = useState<DraftMapping[]>([])
+  const [savedConnection, setSavedConnection] = useState({
+    baseUrl: '',
+    lookupPathTemplate: '/contracts/{contractNumber}',
+    authType: 'none' as IntegrationAuthType,
+    secretEnvKey: '',
+    headerName: 'X-API-Key',
+    isActive: false,
+  })
+
   const [newInternalField, setNewInternalField] = useState('')
   const [newExternalField, setNewExternalField] = useState('')
   const [testContractNumber, setTestContractNumber] = useState('')
@@ -83,12 +112,25 @@ export function IntegrationsPanel({
 
       setData(payload)
       const connection = payload.connection as PublicIntegrationConnection | null
-      setBaseUrl(connection?.baseUrl ?? '')
-      setLookupPathTemplate(connection?.lookupPathTemplate ?? '/contracts/{contractNumber}')
-      setAuthType(connection?.authType ?? 'none')
-      setSecretEnvKey(connection?.authConfig?.secretEnvKey ?? '')
-      setHeaderName(connection?.authConfig?.headerName ?? 'X-API-Key')
-      setIsActive(connection?.isActive ?? false)
+      const nextConnection = {
+        baseUrl: connection?.baseUrl ?? '',
+        lookupPathTemplate: connection?.lookupPathTemplate ?? '/contracts/{contractNumber}',
+        authType: connection?.authType ?? 'none',
+        secretEnvKey: connection?.authConfig?.secretEnvKey ?? '',
+        headerName: connection?.authConfig?.headerName ?? 'X-API-Key',
+        isActive: connection?.isActive ?? false,
+      }
+      setBaseUrl(nextConnection.baseUrl)
+      setLookupPathTemplate(nextConnection.lookupPathTemplate)
+      setAuthType(nextConnection.authType)
+      setSecretEnvKey(nextConnection.secretEnvKey)
+      setHeaderName(nextConnection.headerName)
+      setIsActive(nextConnection.isActive)
+      setSavedConnection(nextConnection)
+
+      const mappings = toDraftMappings(payload.mappings as PublicIntegrationFieldMapping[])
+      setSavedMappings(mappings)
+      setDraftMappings(mappings)
       setTestResult(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load integration settings')
@@ -101,11 +143,45 @@ export function IntegrationsPanel({
     refresh(productTab)
   }, [productTab, refresh, apiKeyId])
 
-  const saveConnection = async () => {
+  const isDirty = useMemo(() => {
+    const connectionDirty =
+      baseUrl !== savedConnection.baseUrl ||
+      lookupPathTemplate !== savedConnection.lookupPathTemplate ||
+      authType !== savedConnection.authType ||
+      secretEnvKey !== savedConnection.secretEnvKey ||
+      headerName !== savedConnection.headerName ||
+      isActive !== savedConnection.isActive
+
+    if (connectionDirty) return true
+    if (draftMappings.length !== savedMappings.length) return true
+
+    const savedById = new Map(savedMappings.map((mapping) => [mapping.clientId, mapping]))
+    return draftMappings.some((mapping) => {
+      const saved = savedById.get(mapping.clientId)
+      if (!saved) return true
+      return (
+        mapping.externalField !== saved.externalField ||
+        mapping.enabled !== saved.enabled ||
+        mapping.internalField !== saved.internalField
+      )
+    })
+  }, [
+    authType,
+    baseUrl,
+    draftMappings,
+    headerName,
+    isActive,
+    lookupPathTemplate,
+    savedConnection,
+    savedMappings,
+    secretEnvKey,
+  ])
+
+  const saveAll = async () => {
     setSaving(true)
     setError(null)
     try {
-      const response = await fetch(`${integrationBase}/${productTab}`, {
+      const connectionResponse = await fetch(`${integrationBase}/${productTab}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -119,69 +195,93 @@ export function IntegrationsPanel({
           isActive,
         }),
       })
-      const payload = await response.json()
-      if (!response.ok) throw new Error(payload.error ?? 'Failed to save connection')
+      const connectionPayload = await connectionResponse.json()
+      if (!connectionResponse.ok) {
+        throw new Error(connectionPayload.error ?? 'Failed to save connection')
+      }
+
+      const savedById = new Map(savedMappings.map((mapping) => [mapping.clientId, mapping]))
+      const draftById = new Map(draftMappings.map((mapping) => [mapping.clientId, mapping]))
+
+      for (const saved of savedMappings) {
+        if (!draftById.has(saved.clientId) && saved.id) {
+          const response = await fetch(`${integrationBase}/${productTab}/fields/${saved.id}`, {
+            method: 'DELETE',
+          })
+          const payload = await response.json()
+          if (!response.ok) throw new Error(payload.error ?? 'Failed to remove mapping')
+        }
+      }
+
+      for (const draft of draftMappings) {
+        const saved = savedById.get(draft.clientId)
+        if (!saved) {
+          const response = await fetch(`${integrationBase}/${productTab}/fields`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              internalField: draft.internalField,
+              externalField: draft.externalField,
+            }),
+          })
+          const payload = await response.json()
+          if (!response.ok) throw new Error(payload.error ?? 'Failed to add mapping')
+          continue
+        }
+
+        if (
+          draft.id &&
+          (draft.externalField !== saved.externalField || draft.enabled !== saved.enabled)
+        ) {
+          const response = await fetch(`${integrationBase}/${productTab}/fields/${draft.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              externalField: draft.externalField,
+              enabled: draft.enabled,
+            }),
+          })
+          const payload = await response.json()
+          if (!response.ok) throw new Error(payload.error ?? 'Failed to update mapping')
+        }
+      }
+
       await refresh(productTab)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save connection')
+      setError(err instanceof Error ? err.message : 'Failed to save integration settings')
     } finally {
       setSaving(false)
     }
   }
 
-  const addMapping = async () => {
+  const addMappingToDraft = () => {
     if (!newInternalField || !newExternalField.trim()) return
-    setError(null)
-    try {
-      const response = await fetch(`${integrationBase}/${productTab}/fields`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          internalField: newInternalField,
-          externalField: newExternalField,
-        }),
-      })
-      const payload = await response.json()
-      if (!response.ok) throw new Error(payload.error ?? 'Failed to add mapping')
-      setNewInternalField('')
-      setNewExternalField('')
-      await refresh(productTab)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add mapping')
-    }
+    setDraftMappings((current) => [
+      ...current,
+      {
+        clientId: `new-${Date.now()}-${newInternalField}`,
+        internalField: newInternalField,
+        externalField: newExternalField.trim(),
+        enabled: true,
+      },
+    ])
+    setNewInternalField('')
+    setNewExternalField('')
   }
 
-  const updateMapping = async (
-    mappingId: string,
-    updates: { externalField?: string; enabled?: boolean },
+  const updateDraftMapping = (
+    clientId: string,
+    updates: Partial<Pick<DraftMapping, 'externalField' | 'enabled'>>,
   ) => {
-    setError(null)
-    try {
-      const response = await fetch(`${integrationBase}/${productTab}/fields/${mappingId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      })
-      const payload = await response.json()
-      if (!response.ok) throw new Error(payload.error ?? 'Failed to update mapping')
-      await refresh(productTab)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update mapping')
-    }
+    setDraftMappings((current) =>
+      current.map((mapping) =>
+        mapping.clientId === clientId ? { ...mapping, ...updates } : mapping,
+      ),
+    )
   }
 
-  const removeMapping = async (mappingId: string) => {
-    setError(null)
-    try {
-      const response = await fetch(`${integrationBase}/${productTab}/fields/${mappingId}`, {
-        method: 'DELETE',
-      })
-      const payload = await response.json()
-      if (!response.ok) throw new Error(payload.error ?? 'Failed to remove mapping')
-      await refresh(productTab)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to remove mapping')
-    }
+  const removeDraftMapping = (clientId: string) => {
+    setDraftMappings((current) => current.filter((mapping) => mapping.clientId !== clientId))
   }
 
   const runTest = async () => {
@@ -225,8 +325,7 @@ export function IntegrationsPanel({
   }
 
   const catalog = data?.catalog ?? []
-  const mappings = data?.mappings ?? []
-  const mappedInternalFields = new Set(mappings.map((mapping) => mapping.internalField))
+  const mappedInternalFields = new Set(draftMappings.map((mapping) => mapping.internalField))
   const availableCatalogFields = catalog.filter((field) => !mappedInternalFields.has(field.key))
 
   return (
@@ -260,25 +359,25 @@ export function IntegrationsPanel({
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:text-red-300 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
           {error}
         </div>
       )}
 
       {loading ? (
-        <p className="text-sm text-slate-600 dark:text-slate-400 dark:text-slate-400">Loading integration settings…</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">Loading integration settings…</p>
       ) : (
         <>
           <section className={panelClass}>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100">Connection</h2>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 dark:text-slate-400">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Connection</h2>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               Configure how {productTab === 'freedom' ? 'Freedom' : 'GAP'} contract numbers are fetched
               from your external system.
             </p>
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="block md:col-span-2">
-                <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-300">
+                <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Base URL
                 </span>
                 <input
@@ -290,7 +389,7 @@ export function IntegrationsPanel({
               </label>
 
               <label className="block md:col-span-2">
-                <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-300">
+                <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Lookup path template
                 </span>
                 <input
@@ -302,7 +401,7 @@ export function IntegrationsPanel({
               </label>
 
               <label className="block">
-                <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-300">
+                <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Auth type
                 </span>
                 <select
@@ -318,7 +417,7 @@ export function IntegrationsPanel({
                 </select>
               </label>
 
-              <label className="flex items-center gap-2 pt-7 text-sm text-slate-700 dark:text-slate-300 dark:text-slate-300">
+              <label className="flex items-center gap-2 pt-7 text-sm text-slate-700 dark:text-slate-300">
                 <input
                   type="checkbox"
                   checked={isActive}
@@ -330,7 +429,7 @@ export function IntegrationsPanel({
               {authType !== 'none' && (
                 <>
                   <label className="block">
-                    <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-300">
+                    <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Secret env var
                     </span>
                     <input
@@ -343,7 +442,7 @@ export function IntegrationsPanel({
 
                   {authType === 'api_key_header' && (
                     <label className="block">
-                      <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-300">
+                      <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                         Header name
                       </span>
                       <input
@@ -357,17 +456,11 @@ export function IntegrationsPanel({
                 </>
               )}
             </div>
-
-            <div className="mt-4">
-              <button type="button" onClick={saveConnection} disabled={saving} className={primaryButtonClass}>
-                {saving ? 'Saving…' : 'Save connection'}
-              </button>
-            </div>
           </section>
 
           <section className={panelClass}>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100">Field mappings</h2>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 dark:text-slate-400">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Field mappings</h2>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               Map external JSON paths to calculator fields. Use dot notation for nested values.
             </p>
 
@@ -382,20 +475,20 @@ export function IntegrationsPanel({
                   </tr>
                 </thead>
                 <tbody>
-                  {mappings.map((mapping) => {
+                  {draftMappings.map((mapping) => {
                     const catalogField = catalog.find((field) => field.key === mapping.internalField)
                     return (
-                      <tr key={mapping.id}>
+                      <tr key={mapping.clientId}>
                         <td className={tdClass}>
                           <div className="font-medium">{catalogField?.label ?? mapping.internalField}</div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-400">{mapping.internalField}</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">{mapping.internalField}</div>
                         </td>
                         <td className={tdClass}>
                           <input
                             className={inputClass}
                             value={mapping.externalField}
                             onChange={(e) =>
-                              updateMapping(mapping.id, { externalField: e.target.value })
+                              updateDraftMapping(mapping.clientId, { externalField: e.target.value })
                             }
                           />
                         </td>
@@ -403,13 +496,15 @@ export function IntegrationsPanel({
                           <input
                             type="checkbox"
                             checked={mapping.enabled}
-                            onChange={(e) => updateMapping(mapping.id, { enabled: e.target.checked })}
+                            onChange={(e) =>
+                              updateDraftMapping(mapping.clientId, { enabled: e.target.checked })
+                            }
                           />
                         </td>
                         <td className={tdClass}>
                           <button
                             type="button"
-                            onClick={() => removeMapping(mapping.id)}
+                            onClick={() => removeDraftMapping(mapping.clientId)}
                             className={dangerButtonClass}
                           >
                             Remove
@@ -441,14 +536,14 @@ export function IntegrationsPanel({
                 onChange={(e) => setNewExternalField(e.target.value)}
                 placeholder="ExternalField or nested.path"
               />
-              <button type="button" onClick={addMapping} className={secondaryButtonClass}>
+              <button type="button" onClick={addMappingToDraft} className={secondaryButtonClass}>
                 Add mapping
               </button>
             </div>
           </section>
 
           <section className={panelClass}>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100">Test lookup</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Test lookup</h2>
             <div className="mt-4 flex flex-wrap gap-3">
               <input
                 className={`${inputClass} max-w-sm`}
@@ -464,10 +559,10 @@ export function IntegrationsPanel({
             {testResult && (
               <div className={`mt-4 ${subtlePanelClass}`}>
                 {testResult.error ? (
-                  <p className="text-sm text-red-700 dark:text-red-300 dark:text-red-300">{testResult.error}</p>
+                  <p className="text-sm text-red-700 dark:text-red-300">{testResult.error}</p>
                 ) : (
                   <>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 dark:text-slate-300">
+                    <p className="text-sm text-slate-700 dark:text-slate-300">
                       Mapped {testResult.mappedFields.length} fields
                       {testResult.missingRequired.length > 0 &&
                         ` · Missing required: ${testResult.missingRequired.join(', ')}`}
@@ -485,6 +580,20 @@ export function IntegrationsPanel({
               </div>
             )}
           </section>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={saveAll}
+              disabled={saving || !isDirty}
+              className={primaryButtonClass}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+            {isDirty && !saving && (
+              <p className="text-sm text-amber-700 dark:text-amber-300">Unsaved changes</p>
+            )}
+          </div>
         </>
       )}
     </div>
