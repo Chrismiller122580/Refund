@@ -5,6 +5,9 @@ export const inputClass = `${inputBase} border-slate-300 focus:border-blue-500 f
 
 export const selectClass = inputClass
 
+export const codeBlockClass =
+  'break-all rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100'
+
 export const inputErrorClass = `${inputBase} border-red-400 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500`
 
 export const numberInputClass = {
