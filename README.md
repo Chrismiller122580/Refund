@@ -26,7 +26,7 @@ VSC and Gap refund calculators with JWT authentication and server-side calculati
    npm run dev
    ```
 
-Open http://localhost:3000 for the landing page. Sign in at `/login` for calculators and API setup at `/app/integration`.
+Open http://localhost:3000 for the landing page. Sign in at `/login` to open calculators at `/app`. API setup is at `/app/integration`.
 
 ## External integration (push fields)
 
@@ -39,7 +39,7 @@ External system  →  POST /api/calculate/{freedom|gap}  →  results + saved ca
 
 **Public API docs:** [/docs](http://localhost:3000/docs) (no login required — limited integrator reference)
 
-**After login:** [/app/integration](http://localhost:3000/app/integration) — setup instructions with your deployment URL
+**API setup (after login):** [/app/integration](http://localhost:3000/app/integration) — integration instructions with your deployment URL
 
 ### API key calculate example
 

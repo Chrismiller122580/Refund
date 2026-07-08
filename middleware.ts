@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
   const authed = cookieAuthed || apiKeyPresent
 
   if (pathname === '/login') {
-    if (cookieAuthed) return NextResponse.redirect(new URL('/app/integration', request.url))
+    if (cookieAuthed) return NextResponse.redirect(new URL('/app', request.url))
     return NextResponse.next()
   }
 

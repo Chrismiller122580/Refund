@@ -24,7 +24,7 @@ export default function LoginPage() {
         <div className={panelClass}>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Sign in</h1>
           <p className="mt-1 mb-6 text-sm text-slate-600 dark:text-slate-400">
-            Access calculators and API integration setup instructions
+            Access VSC and Gap refund calculators
           </p>
           <LoginForm />
           <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
