@@ -34,7 +34,7 @@ export function CalculatorApp() {
     <AppShell
       active="calculators"
       headerExtra={
-        <div className="mt-4 border-t border-slate-100 pt-4 dark:border-slate-800">
+        <div>
           <nav className="flex flex-wrap gap-2">
             {(Object.keys(tabMeta) as Tab[]).map((id) => (
               <button
@@ -47,7 +47,7 @@ export function CalculatorApp() {
               </button>
             ))}
           </nav>
-          <p className={`${panelSubheaderClass} mt-2`}>{meta.description}</p>
+          <p className={panelSubheaderClass}>{meta.description}</p>
         </div>
       }
     >

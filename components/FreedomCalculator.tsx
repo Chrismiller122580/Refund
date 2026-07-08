@@ -136,7 +136,6 @@ export function FreedomCalculator() {
 
   return (
     <div className="space-y-8">
-      <CaseManager type="freedom" inputs={inputs} onLoad={handleLoad} onReset={handleReset} />
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       {loading && <p className="text-sm text-slate-500 dark:text-slate-400">Calculating…</p>}
 
@@ -300,6 +299,7 @@ export function FreedomCalculator() {
         ) : null}
       </section>
 
+      <CaseManager type="freedom" inputs={inputs} onLoad={handleLoad} onReset={handleReset} />
     </div>
   )
 }

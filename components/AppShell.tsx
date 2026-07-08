@@ -25,30 +25,13 @@ export function AppShell({ active, children, headerExtra }: AppShellProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-50 dark:from-slate-950 dark:to-slate-900">
       <header className={`${stickyHeaderClass} shadow-sm`}>
-        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <Link href="/app" className={logoMarkClass}>
-                RC
-              </Link>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Refund Calculators</h1>
-                <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">
-                  {active === 'admin'
-                    ? 'User, API key, and integration management'
-                    : 'VSC and Gap refund calculations'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <span className={userPillClass}>{loading ? 'Loading…' : user?.email}</span>
-              <ThemeToggle />
-              <button type="button" onClick={() => logout()} className={secondaryButtonClass}>
-                Logout
-              </button>
-            </div>
-          </div>
-          <nav className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <Link href="/app" className="flex items-center gap-2.5">
+            <span className={logoMarkClass}>RC</span>
+            <span className="text-lg font-bold text-slate-900 dark:text-slate-100">Refund Calculators</span>
+          </Link>
+
+          <nav className="order-3 flex w-full gap-2 sm:order-none sm:w-auto">
             <Link href="/app" className={active === 'calculators' ? tabActiveClass : tabInactiveClass}>
               Calculators
             </Link>
@@ -58,11 +41,23 @@ export function AppShell({ active, children, headerExtra }: AppShellProps) {
               </Link>
             )}
           </nav>
-          {headerExtra}
+
+          <div className="flex items-center gap-2 text-sm">
+            <span className={`${userPillClass} hidden sm:inline`}>{loading ? 'Loading…' : user?.email}</span>
+            <ThemeToggle />
+            <button type="button" onClick={() => logout()} className={secondaryButtonClass}>
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        {headerExtra && (
+          <div className="mb-6 border-b border-slate-200 pb-4 dark:border-slate-800">{headerExtra}</div>
+        )}
+        {children}
+      </main>
     </div>
   )
 }

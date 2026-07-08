@@ -16,7 +16,7 @@ export function AdminPortal() {
     <AppShell
       active="admin"
       headerExtra={
-        <nav className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
+        <nav className="flex flex-wrap gap-2">
           {([
             ['users', 'Users'],
             ['records', 'Records'],
