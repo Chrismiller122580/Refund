@@ -11,19 +11,19 @@ function ResultRow({ label, value, highlight, negative }: ResultRowProps) {
   return (
     <div
       className={`flex items-center justify-between py-2 ${
-        highlight ? 'border-t border-slate-200 pt-3 font-semibold' : ''
+        highlight ? 'border-t border-slate-200 dark:border-slate-700 pt-3 font-semibold' : ''
       }`}
     >
-      <span className={highlight ? 'text-slate-900' : 'text-slate-600'}>{label}</span>
+      <span className={highlight ? 'text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-400'}>{label}</span>
       <span
         className={
           highlight
             ? negative
               ? 'text-lg text-amber-700'
-              : 'text-lg text-slate-900'
+              : 'text-lg text-slate-900 dark:text-slate-100'
             : negative
               ? 'text-amber-700'
-              : 'text-slate-800'
+              : 'text-slate-800 dark:text-slate-200'
         }
       >
         {formatCurrency(value)}
@@ -50,11 +50,11 @@ export function ResultCard({
   return (
     <div
       className={`rounded-xl border bg-white p-5 shadow-sm ${
-        isNegative ? 'border-amber-300' : 'border-slate-200'
+        isNegative ? 'border-amber-300' : 'border-slate-200 dark:border-slate-700'
       }`}
     >
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
         {isNegative && (
           <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
             Negative refund

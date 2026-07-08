@@ -1,5 +1,7 @@
 'use client'
 
+import { dateInputClass, numberInputClass } from '@/lib/ui-classes'
+
 interface FieldProps {
   label: string
   hint?: string
@@ -10,10 +12,10 @@ interface FieldProps {
 export function Field({ label, hint, error, children }: FieldProps) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-700">{label}</span>
+      <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-300">{label}</span>
       {children}
-      {error && <span className="mt-1 block text-xs text-red-600">{error}</span>}
-      {!error && hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
+      {error && <span className="mt-1 block text-xs text-red-600 dark:text-red-400 dark:text-red-400">{error}</span>}
+      {!error && hint && <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400 dark:text-slate-400">{hint}</span>}
     </label>
   )
 }
@@ -32,11 +34,7 @@ export function NumberInput({ value, onChange, step = 1, hasError }: NumberInput
       value={value}
       step={step}
       onChange={(e) => onChange(Number(e.target.value))}
-      className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 ${
-        hasError
-          ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
-          : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500/20'
-      }`}
+      className={hasError ? numberInputClass.error : numberInputClass.base}
     />
   )
 }
@@ -53,11 +51,7 @@ export function DateInput({ value, onChange, hasError }: DateInputProps) {
       type="date"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 ${
-        hasError
-          ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
-          : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500/20'
-      }`}
+      className={hasError ? dateInputClass.error : dateInputClass.base}
     />
   )
 }

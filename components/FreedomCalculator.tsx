@@ -47,25 +47,25 @@ function ProratedSection({
   showMileage: boolean
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-      <h4 className="mb-3 text-sm font-semibold text-slate-800">{title}</h4>
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:bg-slate-800/60 p-4">
+      <h4 className="mb-3 text-sm font-semibold text-slate-800 dark:text-slate-200">{title}</h4>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         {showMileage && (
           <>
-            <dt className="text-slate-500">Mileage Per Day</dt>
-            <dd className="text-right text-slate-800">{formatNumber(mileagePerDay, 4)}</dd>
-            <dt className="text-slate-500">Cost of One Mile</dt>
-            <dd className="text-right text-slate-800">{formatNumber(costPerMile, 4)}</dd>
+            <dt className="text-slate-500 dark:text-slate-400">Mileage Per Day</dt>
+            <dd className="text-right text-slate-800 dark:text-slate-200">{formatNumber(mileagePerDay, 4)}</dd>
+            <dt className="text-slate-500 dark:text-slate-400">Cost of One Mile</dt>
+            <dd className="text-right text-slate-800 dark:text-slate-200">{formatNumber(costPerMile, 4)}</dd>
           </>
         )}
-        <dt className="text-slate-500">Days Per Diem</dt>
-        <dd className="text-right text-slate-800">{formatCurrency(daysPerDiem)}</dd>
-        <dt className="text-slate-500">Our %</dt>
-        <dd className="text-right text-slate-800">{formatPercent(ourPercent)}</dd>
-        <dt className="text-slate-500">FW Prorated Profit</dt>
-        <dd className="text-right text-slate-800">{formatCurrency(fwProratedProfit)}</dd>
-        <dt className="text-slate-500">Client Prorated Profit</dt>
-        <dd className="text-right text-slate-800">{formatCurrency(clientProratedProfit)}</dd>
+        <dt className="text-slate-500 dark:text-slate-400">Days Per Diem</dt>
+        <dd className="text-right text-slate-800 dark:text-slate-200">{formatCurrency(daysPerDiem)}</dd>
+        <dt className="text-slate-500 dark:text-slate-400">Our %</dt>
+        <dd className="text-right text-slate-800 dark:text-slate-200">{formatPercent(ourPercent)}</dd>
+        <dt className="text-slate-500 dark:text-slate-400">FW Prorated Profit</dt>
+        <dd className="text-right text-slate-800 dark:text-slate-200">{formatCurrency(fwProratedProfit)}</dd>
+        <dt className="text-slate-500 dark:text-slate-400">Client Prorated Profit</dt>
+        <dd className="text-right text-slate-800 dark:text-slate-200">{formatCurrency(clientProratedProfit)}</dd>
       </dl>
     </div>
   )
@@ -130,21 +130,21 @@ export function FreedomCalculator() {
   return (
     <div className="space-y-8">
       <CaseManager type="freedom" inputs={inputs} onLoad={handleLoad} onReset={handleReset} />
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {loading && <p className="text-sm text-slate-500">Calculating…</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {loading && <p className="text-sm text-slate-500 dark:text-slate-400">Calculating…</p>}
 
       <div className="grid gap-8 lg:grid-cols-2">
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900">Inputs</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Inputs</h2>
           <TermPicker terms={FREEDOM_TERMS} selectedLabel={termLabel} onSelect={handleTermSelect} />
-          <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3">
+          <label className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:border-slate-700 dark:bg-slate-900 px-4 py-3">
             <input
               type="checkbox"
               checked={unlimitedMileage}
               onChange={(e) => update('unlimitedMileage', e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-sm font-medium text-slate-700">Unlimited mileage</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Unlimited mileage</span>
           </label>
           <ValidationAlerts warnings={warnings} />
           <div className="grid gap-4 sm:grid-cols-2">
@@ -220,7 +220,7 @@ export function FreedomCalculator() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900">Derived Values</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Derived Values</h2>
           {results ? (
           <>
           <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
@@ -245,14 +245,14 @@ export function FreedomCalculator() {
           <ProratedSection title="Days-Based Proration" showMileage={false} {...results.days} />
           </>
           ) : (
-            <p className="text-sm text-slate-500">Enter inputs to see results.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Enter inputs to see results.</p>
           )}
         </section>
       </div>
 
       <section className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Refund Results</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Refund Results</h2>
           <ExportMenu
             filename={`freedom-refund-${new Date().toISOString().slice(0, 10)}.txt`}
             getSummary={() =>

@@ -127,9 +127,9 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
   }
 
   return (
-    <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="space-y-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:border-slate-700 dark:bg-slate-900 p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-slate-900">Saved records</h3>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Saved records</h3>
         <input
           type="search"
           value={search}
@@ -143,7 +143,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
         <button
           type="button"
           onClick={() => (showSave ? setShowSave(false) : openSave())}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
         >
           {selectedId ? 'Update Record' : 'Save Record'}
         </button>
@@ -151,7 +151,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
           value={selectedId}
           onChange={(e) => handleLoad(e.target.value)}
           disabled={loading}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 disabled:opacity-50"
+          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 dark:text-slate-300 disabled:opacity-50"
         >
           <option value="">{loading ? 'Loading…' : 'Load record…'}</option>
           {cases.map((c) => (
@@ -165,7 +165,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
           <button
             type="button"
             onClick={() => handleDelete(selectedId)}
-            className="rounded-lg px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
+            className="rounded-lg px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50"
           >
             Delete
           </button>
@@ -173,7 +173,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
         <button
           type="button"
           onClick={onReset}
-          className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
+          className="rounded-lg px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100"
         >
           New Case
         </button>
@@ -182,7 +182,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
       {cases.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-slate-100">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500">
+            <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-3 py-2">Name</th>
                 <th className="px-3 py-2">Dates</th>
@@ -194,15 +194,15 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
               {cases.map((record) => (
                 <tr
                   key={record.id}
-                  className={`cursor-pointer hover:bg-slate-50 ${selectedId === record.id ? 'bg-blue-50' : ''}`}
+                  className={`cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950 ${selectedId === record.id ? 'bg-blue-50' : ''}`}
                   onClick={() => handleLoad(record.id)}
                 >
-                  <td className="px-3 py-2 font-medium text-slate-900">{record.name}</td>
-                  <td className="px-3 py-2 text-slate-600">
+                  <td className="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">{record.name}</td>
+                  <td className="px-3 py-2 text-slate-600 dark:text-slate-400">
                     {record.inputs.startDate} → {record.inputs.endDate}
                   </td>
-                  <td className="px-3 py-2 text-slate-600">{customerTotal(record) ?? '—'}</td>
-                  <td className="px-3 py-2 text-slate-500">{formatSavedAt(record.savedAt)}</td>
+                  <td className="px-3 py-2 text-slate-600 dark:text-slate-400">{customerTotal(record) ?? '—'}</td>
+                  <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{formatSavedAt(record.savedAt)}</td>
                 </tr>
               ))}
             </tbody>
@@ -210,17 +210,17 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
         </div>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       {showSave && (
-        <div className="flex w-full flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:w-auto">
+        <div className="flex w-full flex-wrap items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:bg-slate-800/60 p-3 sm:w-auto">
           {selectedId && (
-            <span className="w-full text-xs text-slate-500">
+            <span className="w-full text-xs text-slate-500 dark:text-slate-400">
               Saves inputs and full calculation results. Email sent on new records.
             </span>
           )}
           {!selectedId && (
-            <span className="w-full text-xs text-slate-500">
+            <span className="w-full text-xs text-slate-500 dark:text-slate-400">
               Saves inputs and full calculation results. You will receive an email when created.
             </span>
           )}
@@ -242,7 +242,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
           <button
             type="button"
             onClick={() => setShowSave(false)}
-            className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-200"
+            className="rounded-lg px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
           >
             Cancel
           </button>

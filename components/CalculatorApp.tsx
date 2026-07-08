@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { tabActiveClass, tabInactiveClass } from '@/lib/ui-classes'
 import { AppShell } from './AppShell'
 import { FreedomCalculator } from './FreedomCalculator'
 import { GapCalculator } from './GapCalculator'
@@ -14,7 +15,7 @@ export function CalculatorApp() {
     <AppShell
       active="calculators"
       headerExtra={
-        <nav className="mt-4 flex gap-2 border-t border-slate-100 pt-4">
+        <nav className="mt-4 flex gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
           {([
             ['freedom', 'Freedom'],
             ['gap', 'GAP'],
@@ -23,11 +24,7 @@ export function CalculatorApp() {
               key={id}
               type="button"
               onClick={() => setTab(id)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                tab === id
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
+              className={tab === id ? tabActiveClass : tabInactiveClass}
             >
               {label}
             </button>

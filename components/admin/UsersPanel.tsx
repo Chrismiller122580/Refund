@@ -6,7 +6,7 @@ import type { PublicUser } from '@/lib/db'
 import { Field } from '../Field'
 
 const inputClass =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
+  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('en-US', {
@@ -87,9 +87,9 @@ export function UsersPanel() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">Create user</h2>
-        <p className="mt-1 text-sm text-slate-600">
+      <section className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Create user</h2>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
           Add service accounts for external integrations. Prefer the <code className="text-xs">user</code>{' '}
           role for API keys.
         </p>
@@ -136,24 +136,24 @@ export function UsersPanel() {
       </section>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">Users</h2>
-          <p className="mt-1 text-sm text-slate-600">{users.length} total</p>
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 shadow-sm">
+        <div className="border-b border-slate-200 dark:border-slate-700 px-6 py-4">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Users</h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{users.length} total</p>
         </div>
         {loading ? (
-          <p className="px-6 py-8 text-sm text-slate-500">Loading users…</p>
+          <p className="px-6 py-8 text-sm text-slate-500 dark:text-slate-400">Loading users…</p>
         ) : users.length === 0 ? (
-          <p className="px-6 py-8 text-sm text-slate-500">No users yet.</p>
+          <p className="px-6 py-8 text-sm text-slate-500 dark:text-slate-400">No users yet.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-200 bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
+              <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 <tr>
                   <th className="px-6 py-3">Email</th>
                   <th className="px-6 py-3">Role</th>
@@ -164,14 +164,14 @@ export function UsersPanel() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-50/80">
-                    <td className="px-6 py-4 font-medium text-slate-900">{user.email}</td>
+                  <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950/80">
+                    <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{user.email}</td>
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           user.role === 'admin'
                             ? 'bg-blue-100 text-blue-800'
-                            : 'bg-slate-100 text-slate-700'
+                            : 'bg-slate-100 text-slate-700 dark:text-slate-300'
                         }`}
                       >
                         {user.role}
@@ -188,7 +188,7 @@ export function UsersPanel() {
                         {user.is_active ? 'Active' : 'Disabled'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-600">{formatDate(user.created_at)}</td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{formatDate(user.created_at)}</td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-2">
                         <button
@@ -198,7 +198,7 @@ export function UsersPanel() {
                               role: user.role === 'admin' ? 'user' : 'admin',
                             })
                           }
-                          className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                          className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
                         >
                           Make {user.role === 'admin' ? 'user' : 'admin'}
                         </button>
@@ -207,7 +207,7 @@ export function UsersPanel() {
                           onClick={() =>
                             patchUser(user.id, { is_active: !user.is_active })
                           }
-                          className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                          className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
                         >
                           {user.is_active ? 'Disable' : 'Enable'}
                         </button>

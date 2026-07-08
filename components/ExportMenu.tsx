@@ -25,18 +25,18 @@ export function ExportMenu({ getSummary, filename }: ExportMenuProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm font-medium text-slate-700">Export:</span>
+      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Export:</span>
       <button
         type="button"
         onClick={() => run('copy')}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
       >
         Copy Summary
       </button>
       <button
         type="button"
         onClick={() => run('download')}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
       >
         Download Report
       </button>

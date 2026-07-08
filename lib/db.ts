@@ -6,6 +6,16 @@ import type { ValidationWarning } from './calculators/validation'
 import { hashPassword } from './auth'
 import { getSql } from './db-connection'
 import { buildSearchText } from './records'
+import { getDefaultMappings } from './integrations/field-catalog'
+import type {
+  DbIntegrationConnection,
+  DbIntegrationFieldMapping,
+  IntegrationAuthConfig,
+  IntegrationAuthType,
+  IntegrationProductType,
+  PublicIntegrationConnection,
+  PublicIntegrationFieldMapping,
+} from './integrations/types'
 import type { CaseType, SavedCase } from './storage'
 
 export interface DbUser {
@@ -83,6 +93,31 @@ export async function ensureSchema() {
       created_at TIMESTAMPTZ DEFAULT now(),
       last_used_at TIMESTAMPTZ,
       revoked_at TIMESTAMPTZ
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS integration_connections (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      product_type TEXT NOT NULL UNIQUE CHECK (product_type IN ('freedom', 'gap')),
+      base_url TEXT NOT NULL DEFAULT '',
+      lookup_path_template TEXT NOT NULL DEFAULT '/contracts/{contractNumber}',
+      auth_type TEXT NOT NULL DEFAULT 'none' CHECK (auth_type IN ('none', 'bearer', 'api_key_header', 'basic')),
+      auth_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      is_active BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      updated_at TIMESTAMPTZ DEFAULT now()
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS integration_field_mappings (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      connection_id UUID NOT NULL REFERENCES integration_connections(id) ON DELETE CASCADE,
+      internal_field TEXT NOT NULL,
+      external_field TEXT NOT NULL,
+      enabled BOOLEAN NOT NULL DEFAULT true,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      UNIQUE (connection_id, internal_field)
     )
   `
 
@@ -479,6 +514,194 @@ export async function deleteCaseForUser(userId: string, caseId: string): Promise
   const sql = getSql()
   const rows = await sql`
     DELETE FROM cases WHERE id = ${caseId} AND user_id = ${userId} RETURNING id
+  `
+  return rows.length > 0
+}
+
+function mapIntegrationConnection(row: DbIntegrationConnection): PublicIntegrationConnection {
+  return {
+    id: row.id,
+    productType: row.product_type,
+    baseUrl: row.base_url,
+    lookupPathTemplate: row.lookup_path_template,
+    authType: row.auth_type,
+    authConfig: row.auth_config ?? {},
+    isActive: row.is_active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+function mapIntegrationFieldMapping(row: DbIntegrationFieldMapping): PublicIntegrationFieldMapping {
+  return {
+    id: row.id,
+    connectionId: row.connection_id,
+    internalField: row.internal_field,
+    externalField: row.external_field,
+    enabled: row.enabled,
+    sortOrder: row.sort_order,
+    createdAt: row.created_at,
+  }
+}
+
+export interface IntegrationBundle {
+  connection: PublicIntegrationConnection | null
+  mappings: PublicIntegrationFieldMapping[]
+}
+
+export async function ensureIntegrationConnection(
+  productType: IntegrationProductType,
+): Promise<PublicIntegrationConnection> {
+  const sql = getSql()
+  const rows = await sql`
+    INSERT INTO integration_connections (product_type)
+    VALUES (${productType})
+    ON CONFLICT (product_type) DO UPDATE SET updated_at = integration_connections.updated_at
+    RETURNING id, product_type, base_url, lookup_path_template, auth_type, auth_config, is_active, created_at, updated_at
+  `
+  return mapIntegrationConnection(rows[0] as DbIntegrationConnection)
+}
+
+export async function getIntegrationConnection(
+  productType: IntegrationProductType,
+): Promise<PublicIntegrationConnection | null> {
+  const sql = getSql()
+  const rows = await sql`
+    SELECT id, product_type, base_url, lookup_path_template, auth_type, auth_config, is_active, created_at, updated_at
+    FROM integration_connections
+    WHERE product_type = ${productType}
+  `
+  if (rows.length === 0) return null
+  return mapIntegrationConnection(rows[0] as DbIntegrationConnection)
+}
+
+export async function upsertIntegrationConnection(
+  productType: IntegrationProductType,
+  updates: {
+    baseUrl: string
+    lookupPathTemplate: string
+    authType: IntegrationAuthType
+    authConfig: IntegrationAuthConfig
+    isActive: boolean
+  },
+): Promise<PublicIntegrationConnection> {
+  const connection = await ensureIntegrationConnection(productType)
+  const sql = getSql()
+  const rows = await sql`
+    UPDATE integration_connections
+    SET
+      base_url = ${updates.baseUrl.trim()},
+      lookup_path_template = ${updates.lookupPathTemplate.trim()},
+      auth_type = ${updates.authType},
+      auth_config = ${JSON.stringify(updates.authConfig)}::jsonb,
+      is_active = ${updates.isActive},
+      updated_at = now()
+    WHERE id = ${connection.id}
+    RETURNING id, product_type, base_url, lookup_path_template, auth_type, auth_config, is_active, created_at, updated_at
+  `
+  return mapIntegrationConnection(rows[0] as DbIntegrationConnection)
+}
+
+export async function listIntegrationFieldMappings(
+  connectionId: string,
+): Promise<PublicIntegrationFieldMapping[]> {
+  const sql = getSql()
+  const rows = await sql`
+    SELECT id, connection_id, internal_field, external_field, enabled, sort_order, created_at
+    FROM integration_field_mappings
+    WHERE connection_id = ${connectionId}
+    ORDER BY sort_order ASC, created_at ASC
+  `
+  return (rows as DbIntegrationFieldMapping[]).map(mapIntegrationFieldMapping)
+}
+
+export async function getIntegrationBundle(
+  productType: IntegrationProductType,
+): Promise<IntegrationBundle | null> {
+  const connection = await getIntegrationConnection(productType)
+  if (!connection) return null
+  const mappings = await listIntegrationFieldMappings(connection.id)
+  return { connection, mappings }
+}
+
+export async function ensureDefaultFieldMappings(
+  productType: IntegrationProductType,
+): Promise<PublicIntegrationFieldMapping[]> {
+  const connection = await ensureIntegrationConnection(productType)
+  const existing = await listIntegrationFieldMappings(connection.id)
+  if (existing.length > 0) return existing
+
+  const sql = getSql()
+  const defaults = getDefaultMappings(productType)
+  for (const [index, mapping] of defaults.entries()) {
+    await sql`
+      INSERT INTO integration_field_mappings (connection_id, internal_field, external_field, sort_order)
+      VALUES (${connection.id}, ${mapping.internalField}, ${mapping.externalField}, ${index})
+      ON CONFLICT (connection_id, internal_field) DO NOTHING
+    `
+  }
+
+  return listIntegrationFieldMappings(connection.id)
+}
+
+export async function createIntegrationFieldMapping(
+  productType: IntegrationProductType,
+  internalField: string,
+  externalField: string,
+): Promise<PublicIntegrationFieldMapping> {
+  const connection = await ensureIntegrationConnection(productType)
+  const sql = getSql()
+  const rows = await sql`
+    INSERT INTO integration_field_mappings (connection_id, internal_field, external_field, sort_order)
+    VALUES (
+      ${connection.id},
+      ${internalField},
+      ${externalField.trim()},
+      (SELECT COALESCE(MAX(sort_order), -1) + 1 FROM integration_field_mappings WHERE connection_id = ${connection.id})
+    )
+    RETURNING id, connection_id, internal_field, external_field, enabled, sort_order, created_at
+  `
+  return mapIntegrationFieldMapping(rows[0] as DbIntegrationFieldMapping)
+}
+
+export async function updateIntegrationFieldMapping(
+  productType: IntegrationProductType,
+  mappingId: string,
+  updates: { externalField?: string; enabled?: boolean },
+): Promise<PublicIntegrationFieldMapping | null> {
+  const connection = await getIntegrationConnection(productType)
+  if (!connection) return null
+
+  const existingRows = await getSql()`
+    SELECT id, connection_id, internal_field, external_field, enabled, sort_order, created_at
+    FROM integration_field_mappings
+    WHERE id = ${mappingId} AND connection_id = ${connection.id}
+  `
+  const existing = existingRows[0] as DbIntegrationFieldMapping | undefined
+  if (!existing) return null
+
+  const externalField = updates.externalField?.trim() ?? existing.external_field
+  const enabled = updates.enabled ?? existing.enabled
+  const rows = await getSql()`
+    UPDATE integration_field_mappings
+    SET external_field = ${externalField}, enabled = ${enabled}
+    WHERE id = ${mappingId}
+    RETURNING id, connection_id, internal_field, external_field, enabled, sort_order, created_at
+  `
+  return mapIntegrationFieldMapping(rows[0] as DbIntegrationFieldMapping)
+}
+
+export async function deleteIntegrationFieldMapping(
+  productType: IntegrationProductType,
+  mappingId: string,
+): Promise<boolean> {
+  const connection = await getIntegrationConnection(productType)
+  if (!connection) return false
+
+  const rows = await getSql()`
+    DELETE FROM integration_field_mappings
+    WHERE id = ${mappingId} AND connection_id = ${connection.id}
+    RETURNING id
   `
   return rows.length > 0
 }

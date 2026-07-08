@@ -76,6 +76,27 @@ Read `recommendation.recommended` and `recommendation.daysTotal` (or `milesTotal
 
 ---
 
+## Contract lookup (pull by contract number)
+
+Admins configure Freedom and GAP connections separately in **Admin → Integrations** (base URL, lookup path, auth env var, field mappings).
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/integrations/freedom/contracts/{contractNumber}` | Pull + map Freedom inputs |
+| `GET /api/integrations/gap/contracts/{contractNumber}` | Pull + map GAP inputs |
+| `POST /api/integrations/{type}/contracts/{contractNumber}/calculate` | Pull, then calculate |
+
+**Example:**
+
+```bash
+curl -s "$BASE_URL/api/integrations/gap/contracts/GAP-12345" \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+Response includes normalized `inputs`, `mappedFields`, and `missingRequired` for any required calculator fields that were not mapped from the external payload.
+
+---
+
 ## Integration workflows
 
 ### 1. Calculate only (stateless)

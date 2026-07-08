@@ -62,12 +62,12 @@ export function GapCalculator() {
   return (
     <div className="space-y-8">
       <CaseManager type="gap" inputs={inputs} onLoad={handleLoad} onReset={handleReset} />
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {loading && <p className="text-sm text-slate-500">Calculating…</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {loading && <p className="text-sm text-slate-500 dark:text-slate-400">Calculating…</p>}
 
       <div className="grid gap-8 lg:grid-cols-2">
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900">Inputs</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Inputs</h2>
           <TermPicker terms={GAP_TERMS} selectedLabel={termLabel} onSelect={handleTermSelect} />
           <ValidationAlerts warnings={warnings} />
           <div className="grid gap-4 sm:grid-cols-2">
@@ -122,7 +122,7 @@ export function GapCalculator() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900">Derived Values</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Derived Values</h2>
           {results ? (
           <>
           <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
@@ -132,29 +132,29 @@ export function GapCalculator() {
             </dl>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <h4 className="mb-3 text-sm font-semibold text-slate-800">Proration</h4>
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:bg-slate-800/60 p-4">
+            <h4 className="mb-3 text-sm font-semibold text-slate-800 dark:text-slate-200">Proration</h4>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <dt className="text-slate-500">Days Per Diem</dt>
-              <dd className="text-right text-slate-800">{formatCurrency(results.prorated.daysPerDiem)}</dd>
-              <dt className="text-slate-500">Our %</dt>
-              <dd className="text-right text-slate-800">{formatPercent(results.prorated.ourPercent)}</dd>
-              <dt className="text-slate-500">FW Prorated Profit</dt>
-              <dd className="text-right text-slate-800">{formatCurrency(results.prorated.fwProratedProfit)}</dd>
-              <dt className="text-slate-500">Client Prorated Profit</dt>
-              <dd className="text-right text-slate-800">{formatCurrency(results.prorated.clientProratedProfit)}</dd>
+              <dt className="text-slate-500 dark:text-slate-400">Days Per Diem</dt>
+              <dd className="text-right text-slate-800 dark:text-slate-200">{formatCurrency(results.prorated.daysPerDiem)}</dd>
+              <dt className="text-slate-500 dark:text-slate-400">Our %</dt>
+              <dd className="text-right text-slate-800 dark:text-slate-200">{formatPercent(results.prorated.ourPercent)}</dd>
+              <dt className="text-slate-500 dark:text-slate-400">FW Prorated Profit</dt>
+              <dd className="text-right text-slate-800 dark:text-slate-200">{formatCurrency(results.prorated.fwProratedProfit)}</dd>
+              <dt className="text-slate-500 dark:text-slate-400">Client Prorated Profit</dt>
+              <dd className="text-right text-slate-800 dark:text-slate-200">{formatCurrency(results.prorated.clientProratedProfit)}</dd>
             </dl>
           </div>
           </>
           ) : (
-            <p className="text-sm text-slate-500">Enter inputs to see results.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Enter inputs to see results.</p>
           )}
         </section>
       </div>
 
       <section className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Refund Results</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Refund Results</h2>
           <ExportMenu
             filename={`gap-refund-${new Date().toISOString().slice(0, 10)}.txt`}
             getSummary={() => results ? formatGapSummary(inputs, results, warnings, termLabel) : ''}

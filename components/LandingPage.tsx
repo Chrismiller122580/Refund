@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ThemeToggle } from './ThemeToggle'
 
 interface LandingPageProps {
   isAuthenticated: boolean
@@ -125,20 +126,21 @@ export function LandingPage({ isAuthenticated }: LandingPageProps) {
   const primaryLabel = isAuthenticated ? 'Open calculators' : 'Sign in to start'
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200/80 bg-white/80 backdrop-blur-sm">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/80">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
               RC
             </div>
-            <span className="font-semibold text-slate-900">Refund Calculators</span>
+            <span className="font-semibold text-slate-900 dark:text-slate-100">Refund Calculators</span>
           </div>
           <nav className="flex items-center gap-3">
-            <a href="#features" className="hidden text-sm text-slate-600 hover:text-slate-900 sm:inline">
+            <ThemeToggle />
+            <a href="#features" className="hidden text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 sm:inline">
               Features
             </a>
-            <a href="#calculators" className="hidden text-sm text-slate-600 hover:text-slate-900 sm:inline">
+            <a href="#calculators" className="hidden text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 sm:inline">
               Calculators
             </a>
             {isAuthenticated ? (
@@ -170,10 +172,10 @@ export function LandingPage({ isAuthenticated }: LandingPageProps) {
             <p className="mb-4 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
               Freedom &amp; GAP warranty refund tools
             </p>
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-5xl lg:text-6xl">
               Calculate warranty refunds with confidence
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
               A purpose-built workspace for Freedom and GAP refund calculations — matching your Excel
               workflows with validation, saved cases, and one-click exports.
             </p>
@@ -186,7 +188,7 @@ export function LandingPage({ isAuthenticated }: LandingPageProps) {
               </Link>
               <a
                 href="#calculators"
-                className="rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-950"
               >
                 See calculators
               </a>
@@ -201,21 +203,21 @@ export function LandingPage({ isAuthenticated }: LandingPageProps) {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-xl border border-slate-200/80 bg-white/70 p-5 shadow-sm backdrop-blur-sm"
+                className="rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white/70 p-5 shadow-sm backdrop-blur-sm"
               >
-                <dt className="text-sm text-slate-500">{stat.label}</dt>
-                <dd className="mt-1 text-2xl font-bold text-slate-900">{stat.value}</dd>
+                <dt className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</dt>
+                <dd className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">{stat.value}</dd>
               </div>
             ))}
           </dl>
         </div>
       </section>
 
-      <section id="calculators" className="border-t border-slate-200 bg-white py-20">
+      <section id="calculators" className="border-t border-slate-200 dark:border-slate-700 bg-white dark:border-slate-700 dark:bg-slate-900 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-bold text-slate-900">Two calculators, one platform</h2>
-            <p className="mt-3 text-slate-600">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Two calculators, one platform</h2>
+            <p className="mt-3 text-slate-600 dark:text-slate-400">
               Switch between Freedom and GAP workflows without leaving the app. Each calculator mirrors
               the structure and outputs you rely on today.
             </p>
@@ -225,7 +227,7 @@ export function LandingPage({ isAuthenticated }: LandingPageProps) {
             {calculators.map((calc) => (
               <article
                 key={calc.name}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm"
+                className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:bg-slate-800/60 shadow-sm"
               >
                 <div className={`bg-gradient-to-r ${calc.accent} px-6 py-5`}>
                   <h3 className="text-xl font-bold text-white">{calc.name}</h3>
@@ -233,7 +235,7 @@ export function LandingPage({ isAuthenticated }: LandingPageProps) {
                 </div>
                 <ul className="space-y-3 px-6 py-6">
                   {calc.points.map((point) => (
-                    <li key={point} className="flex items-start gap-3 text-sm text-slate-700">
+                    <li key={point} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
                       <svg
                         className="mt-0.5 h-5 w-5 shrink-0 text-blue-600"
                         fill="none"
@@ -253,11 +255,11 @@ export function LandingPage({ isAuthenticated }: LandingPageProps) {
         </div>
       </section>
 
-      <section id="features" className="border-t border-slate-200 py-20">
+      <section id="features" className="border-t border-slate-200 dark:border-slate-700 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-bold text-slate-900">Built for real refund workflows</h2>
-            <p className="mt-3 text-slate-600">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Built for real refund workflows</h2>
+            <p className="mt-3 text-slate-600 dark:text-slate-400">
               Everything you need to move from spreadsheet tabs to a reliable, shareable calculation
               process.
             </p>
@@ -267,37 +269,37 @@ export function LandingPage({ isAuthenticated }: LandingPageProps) {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:border-slate-700 dark:bg-slate-900 p-6 shadow-sm transition-shadow hover:shadow-md"
               >
                 <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                   {feature.icon}
                 </div>
-                <h3 className="mt-4 font-semibold text-slate-900">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{feature.description}</p>
+                <h3 className="mt-4 font-semibold text-slate-900 dark:text-slate-100">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="border-t border-slate-200 bg-white py-20">
+      <section className="border-t border-slate-200 dark:border-slate-700 bg-white dark:border-slate-700 dark:bg-slate-900 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="text-3xl font-bold text-slate-900">How it works</h2>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">How it works</h2>
           <ol className="mt-12 grid gap-8 md:grid-cols-3">
             {steps.map((item) => (
               <li key={item.step} className="relative">
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
                   {item.step}
                 </span>
-                <h3 className="mt-4 font-semibold text-slate-900">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.description}</p>
+                <h3 className="mt-4 font-semibold text-slate-900 dark:text-slate-100">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{item.description}</p>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      <section className="border-t border-slate-200 py-20">
+      <section className="border-t border-slate-200 dark:border-slate-700 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 px-8 py-12 text-center shadow-lg sm:px-12">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">Ready to run your next refund?</h2>
@@ -314,14 +316,14 @@ export function LandingPage({ isAuthenticated }: LandingPageProps) {
         </div>
       </section>
 
-      <footer className="border-t border-slate-200 bg-white py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-slate-500 sm:flex-row sm:px-6">
+      <footer className="border-t border-slate-200 dark:border-slate-700 bg-white dark:border-slate-700 dark:bg-slate-900 py-8">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-slate-500 dark:text-slate-400 sm:flex-row sm:px-6">
           <p>Refund Calculators — Freedom &amp; GAP warranty tools</p>
           <div className="flex gap-6">
-            <Link href={primaryHref} className="hover:text-slate-700">
+            <Link href={primaryHref} className="hover:text-slate-700 dark:text-slate-300">
               {isAuthenticated ? 'App' : 'Sign in'}
             </Link>
-            <a href="#features" className="hover:text-slate-700">
+            <a href="#features" className="hover:text-slate-700 dark:text-slate-300">
               Features
             </a>
           </div>
