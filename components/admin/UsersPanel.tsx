@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { UserRole } from '@/lib/auth'
 import type { PublicUser } from '@/lib/db'
-import { inputClass, selectClass } from '@/lib/ui-classes'
+import { inputClass, panelClass, primaryButtonClass, selectClass } from '@/lib/ui-classes'
 import { Field } from '../Field'
 
 function formatDate(value: string) {
@@ -85,51 +85,47 @@ export function UsersPanel() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 p-6 shadow-sm">
+      <section className={panelClass}>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Create user</h2>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
           Add service accounts for external integrations. Prefer the <code className="text-xs">user</code>{' '}
           role for API keys.
         </p>
-        <form onSubmit={handleCreate} className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Field label="Email">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className={inputClass}
-            />
-          </Field>
-          <Field label="Password">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              className={inputClass}
-            />
-          </Field>
-          <Field label="Role">
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as UserRole)}
-              className={selectClass}
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </Field>
-          <div className="flex items-end">
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-            >
-              {saving ? 'Creating…' : 'Create user'}
-            </button>
+        <form onSubmit={handleCreate} className="mt-6 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Field label="Email">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Password">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Role">
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value as UserRole)}
+                className={selectClass}
+              >
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </Field>
           </div>
+          <button type="submit" disabled={saving} className={primaryButtonClass}>
+            {saving ? 'Creating…' : 'Create user'}
+          </button>
         </form>
       </section>
 

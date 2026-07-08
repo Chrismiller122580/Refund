@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import type { PublicApiKey, PublicUser } from '@/lib/db'
-import { codeBlockClass, inputClass, primaryButtonClass, selectClass } from '@/lib/ui-classes'
+import { codeBlockClass, inputClass, panelClass, primaryButtonClass, selectClass } from '@/lib/ui-classes'
 import { Field } from '../Field'
 import { IntegrationsPanel } from './IntegrationsPanel'
 
@@ -157,50 +157,50 @@ export function ApiKeysPanel() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 p-6 shadow-sm">
+      <section className={panelClass}>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Create API key</h2>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
           Keys inherit the user&apos;s role. Each API key has its own contract integration (Freedom and GAP
           field mappings). Configure integrations from the API keys table below.
         </p>
-        <form onSubmit={handleCreate} className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Field label="User">
-            <select
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              required
-              className={selectClass}
-            >
-              {users.length === 0 ? (
-                <option value="">No active users</option>
-              ) : (
-                users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.email} ({user.role})
-                  </option>
-                ))
-              )}
-            </select>
-          </Field>
-          <Field label="Key name" hint="e.g. CRM integration, staging">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              placeholder="Integration name"
-              className={inputClass}
-            />
-          </Field>
-          <div className="flex items-end">
-            <button
-              type="submit"
-              disabled={saving || users.length === 0}
-              className={`w-full ${primaryButtonClass}`}
-            >
-              {saving ? 'Creating…' : 'Create API key'}
-            </button>
+        <form onSubmit={handleCreate} className="mt-6 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="User">
+              <select
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                required
+                className={selectClass}
+              >
+                {users.length === 0 ? (
+                  <option value="">No active users</option>
+                ) : (
+                  users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.email} ({user.role})
+                    </option>
+                  ))
+                )}
+              </select>
+            </Field>
+            <Field label="Key name" hint="e.g. CRM integration, staging">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="Integration name"
+                className={inputClass}
+              />
+            </Field>
           </div>
+          <button
+            type="submit"
+            disabled={saving || users.length === 0}
+            className={primaryButtonClass}
+          >
+            {saving ? 'Creating…' : 'Create API key'}
+          </button>
         </form>
       </section>
 
