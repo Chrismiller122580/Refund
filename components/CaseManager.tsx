@@ -1,8 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { FreedomInputs, FreedomResults } from '@/lib/calculators/freedom'
-import type { GapInputs, GapResults } from '@/lib/calculators/gap'
+import type { FreedomInputs } from '@/lib/calculators/freedom'
+import type { GapInputs } from '@/lib/calculators/gap'
+import { formatCustomerTotal } from '@/lib/records'
 import {
   deleteCase,
   listCases,
@@ -34,20 +35,6 @@ function formatSavedAt(value: string) {
     day: 'numeric',
     year: 'numeric',
   })
-}
-
-function customerTotal(record: SavedCase): string | null {
-  if (!record.results) return null
-  if (record.type === 'gap') {
-    return `$${(record.results as GapResults).refund.totalCustomerReceives.toFixed(2)}`
-  }
-  const freedom = record.results as FreedomResults
-  const rec = record.recommendation
-  const total =
-    rec?.recommended === 'days' || rec?.milesDisqualified
-      ? freedom.refundPerDays.totalCustomerReceives
-      : freedom.refundPerMiles.totalCustomerReceives
-  return `$${total.toFixed(2)}`
 }
 
 export function CaseManager<T extends FreedomInputs | GapInputs>({
@@ -163,12 +150,15 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
           className={`${selectClass} py-1.5 disabled:opacity-50`}
         >
           <option value="">{loading ? 'Loading…' : 'Load record…'}</option>
-          {cases.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-              {customerTotal(c) ? ` — ${customerTotal(c)}` : ''}
-            </option>
-          ))}
+          {cases.map((c) => {
+            const total = formatCustomerTotal(c)
+            return (
+              <option key={c.id} value={c.id}>
+                {c.name}
+                {total ? ` — ${total}` : ''}
+              </option>
+            )
+          })}
         </select>
         {selectedId && (
           <button type="button" onClick={() => handleDelete(selectedId)} className={dangerButtonClass}>
@@ -204,7 +194,7 @@ export function CaseManager<T extends FreedomInputs | GapInputs>({
                   <td className="px-3 py-2 text-slate-600 dark:text-slate-400">
                     {record.inputs.startDate} → {record.inputs.endDate}
                   </td>
-                  <td className="px-3 py-2 text-slate-600 dark:text-slate-400">{customerTotal(record) ?? '—'}</td>
+                  <td className="px-3 py-2 text-slate-600 dark:text-slate-400">{formatCustomerTotal(record) ?? '—'}</td>
                   <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{formatSavedAt(record.savedAt)}</td>
                 </tr>
               ))}

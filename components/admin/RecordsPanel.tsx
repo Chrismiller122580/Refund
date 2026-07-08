@@ -1,8 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { FreedomResults } from '@/lib/calculators/freedom'
-import type { GapResults } from '@/lib/calculators/gap'
+import { formatCustomerTotal } from '@/lib/records'
 import { listAllRecords, type CaseType, type SavedCase } from '@/lib/storage'
 import { inputClass, selectClass } from '@/lib/ui-classes'
 
@@ -20,20 +19,6 @@ function formatSavedAt(value: string) {
     hour: 'numeric',
     minute: '2-digit',
   })
-}
-
-function customerTotal(record: SavedCase): string | null {
-  if (!record.results) return null
-  if (record.type === 'gap') {
-    return `$${(record.results as GapResults).refund.totalCustomerReceives.toFixed(2)}`
-  }
-  const freedom = record.results as FreedomResults
-  const rec = record.recommendation
-  const total =
-    rec?.recommended === 'days' || rec?.milesDisqualified
-      ? freedom.refundPerDays.totalCustomerReceives
-      : freedom.refundPerMiles.totalCustomerReceives
-  return `$${total.toFixed(2)}`
 }
 
 export function RecordsPanel() {
@@ -134,7 +119,7 @@ export function RecordsPanel() {
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                       {record.inputs.startDate} → {record.inputs.endDate}
                     </td>
-                    <td className="px-6 py-4 text-slate-900 dark:text-slate-100">{customerTotal(record) ?? '—'}</td>
+                    <td className="px-6 py-4 text-slate-900 dark:text-slate-100">{formatCustomerTotal(record) ?? '—'}</td>
                     <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{formatSavedAt(record.savedAt)}</td>
                   </tr>
                 ))}

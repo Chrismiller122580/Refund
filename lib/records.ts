@@ -2,12 +2,16 @@ import type { FreedomInputs, FreedomResults } from './calculators/freedom'
 import type { GapInputs, GapResults } from './calculators/gap'
 import type { FreedomRecommendation } from './calculators/recommendation'
 import type { ValidationWarning } from './calculators/validation'
-import type { CaseType } from './storage'
+import type { CaseType, SavedCase } from './storage'
 
 export interface RecordSnapshot {
   results: FreedomResults | GapResults
   warnings: ValidationWarning[]
   recommendation?: FreedomRecommendation
+}
+
+function readTotal(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
 function primaryTotal(
@@ -16,13 +20,20 @@ function primaryTotal(
   recommendation?: FreedomRecommendation,
 ): number | null {
   if (type === 'gap') {
-    return (results as GapResults).refund.totalCustomerReceives
+    return readTotal((results as GapResults).refund?.totalCustomerReceives)
   }
   const freedom = results as FreedomResults
   if (recommendation?.recommended === 'days' || recommendation?.milesDisqualified) {
-    return freedom.refundPerDays.totalCustomerReceives
+    return readTotal(freedom.refundPerDays?.totalCustomerReceives)
   }
-  return freedom.refundPerMiles.totalCustomerReceives
+  return readTotal(freedom.refundPerMiles?.totalCustomerReceives)
+}
+
+export function formatCustomerTotal(record: SavedCase): string | null {
+  if (!record.results) return null
+  const total = primaryTotal(record.type, record.results, record.recommendation ?? undefined)
+  if (total == null) return null
+  return `$${total.toFixed(2)}`
 }
 
 export function buildSearchText(
