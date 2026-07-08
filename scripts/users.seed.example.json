@@ -1,0 +1,12 @@
+[
+  {
+    "email": "integration@yourcompany.com",
+    "password": "replace-with-strong-password",
+    "role": "user"
+  },
+  {
+    "email": "api-service@yourcompany.com",
+    "password": "replace-with-strong-password",
+    "role": "user"
+  }
+]
