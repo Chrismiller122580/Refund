@@ -8,6 +8,10 @@ export interface GapInputs {
   retailCost: number
   deductible: number
   approvedClaimAmount: number
+  /** Agent name for chargeback tracking */
+  agentName: string
+  /** Agent commission rate in percent points (e.g. 10 = 10%) */
+  agentPercent: number
 }
 
 export interface GapProratedBreakdown {
@@ -21,20 +25,34 @@ export interface GapRefundBreakdown {
   amountSentToClient: number
   clientRefundToCustomer: number
   totalCustomerReceives: number
+  /** Pro-rated agent commission chargeback on unearned dealer cost */
+  agentChargeback: number
 }
 
 export interface GapResults {
   daysUsed: number
   prorated: GapProratedBreakdown
   refund: GapRefundBreakdown
+  /** Original full agent commission (fwCost × agent%) before proration */
+  agentOriginalCommission: number
+}
+
+/** Agent chargeback = dealer cost × agent% × (1 − ourPercent) */
+function agentChargeback(cost: number, agentPercent: number, ourPercent: number): number {
+  if (!cost || !agentPercent) return 0
+  const rate = agentPercent / 100
+  const unearned = Math.max(0, 1 - ourPercent)
+  return cost * rate * unearned
 }
 
 export function calculateGap(inputs: GapInputs): GapResults {
   const daysUsed = datedifDays(inputs.startDate, inputs.endDate)
   const daysPerDiem = inputs.fwCost / inputs.contractTermDays
   const fwProratedProfit = daysPerDiem * daysUsed
-  const ourPercent = fwProratedProfit / inputs.fwCost
+  const ourPercent = inputs.fwCost ? fwProratedProfit / inputs.fwCost : 0
   const clientProratedProfit = ourPercent * inputs.retailCost
+  const agentOriginalCommission =
+    inputs.fwCost && inputs.agentPercent ? inputs.fwCost * (inputs.agentPercent / 100) : 0
 
   const deductions = inputs.deductible + inputs.approvedClaimAmount
 
@@ -42,6 +60,7 @@ export function calculateGap(inputs: GapInputs): GapResults {
     amountSentToClient: inputs.fwCost - fwProratedProfit - deductions,
     clientRefundToCustomer: inputs.retailCost - clientProratedProfit,
     totalCustomerReceives: 0,
+    agentChargeback: agentChargeback(inputs.fwCost, inputs.agentPercent, ourPercent),
   }
   refund.totalCustomerReceives =
     refund.amountSentToClient + refund.clientRefundToCustomer
@@ -55,6 +74,7 @@ export function calculateGap(inputs: GapInputs): GapResults {
       clientProratedProfit,
     },
     refund,
+    agentOriginalCommission,
   }
 }
 
@@ -66,6 +86,8 @@ export const DEFAULT_GAP_INPUTS: GapInputs = {
   retailCost: 0,
   deductible: 0,
   approvedClaimAmount: 0,
+  agentName: '',
+  agentPercent: 0,
 }
 
 /** Sample data from the Excel workbook — used in tests only */
@@ -77,4 +99,6 @@ export const EXAMPLE_GAP_INPUTS: GapInputs = {
   retailCost: 855,
   deductible: 50,
   approvedClaimAmount: 0,
+  agentName: '',
+  agentPercent: 0,
 }

@@ -32,6 +32,8 @@ export function normalizeFreedomInputs(raw: Partial<FreedomInputs>): FreedomInpu
     deductible: num(raw.deductible),
     approvedClaimAmount: num(raw.approvedClaimAmount),
     unlimitedMileage: raw.unlimitedMileage ?? false,
+    agentName: str(raw.agentName),
+    agentPercent: num(raw.agentPercent),
   }
 }
 
@@ -44,6 +46,8 @@ export function normalizeGapInputs(raw: Partial<GapInputs>): GapInputs {
     retailCost: num(raw.retailCost),
     deductible: num(raw.deductible),
     approvedClaimAmount: num(raw.approvedClaimAmount),
+    agentName: str(raw.agentName),
+    agentPercent: num(raw.agentPercent),
   }
 }
 
