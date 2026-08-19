@@ -41,6 +41,13 @@ export function formatFreedomSummary(
     line('Mark Up', formatCurrency(inputs.markup)),
     line('Deductible', formatCurrency(inputs.deductible)),
     line('Approved Claim', formatCurrency(inputs.approvedClaimAmount)),
+    ...(inputs.agentName || inputs.agentPercent
+      ? [
+          line('Agent Name', inputs.agentName || '—'),
+          line('Agent %', `${inputs.agentPercent}%`),
+          line('Agent Original Commission', formatCurrency(results.agentOriginalCommission)),
+        ]
+      : []),
     '',
     'Derived Values:',
     ...(unlimited
@@ -58,12 +65,18 @@ export function formatFreedomSummary(
           line('  Amount Sent to Client', formatCurrency(results.refundPerMiles.amountSentToClient)),
           line('  Client Refund to Customer', formatCurrency(results.refundPerMiles.clientRefundToCustomer)),
           line('  Total Customer Receives', formatCurrency(results.refundPerMiles.totalCustomerReceives)),
+          ...(inputs.agentPercent
+            ? [line('  Agent Chargeback', formatCurrency(results.refundPerMiles.agentChargeback))]
+            : []),
         ]),
     '',
     'Refund per Days:',
     line('  Amount Sent to Client', formatCurrency(results.refundPerDays.amountSentToClient)),
     line('  Client Refund to Customer', formatCurrency(results.refundPerDays.clientRefundToCustomer)),
     line('  Total Customer Receives', formatCurrency(results.refundPerDays.totalCustomerReceives)),
+    ...(inputs.agentPercent
+      ? [line('  Agent Chargeback', formatCurrency(results.refundPerDays.agentChargeback))]
+      : []),
   ]
 
   if (recommendation) {
@@ -92,6 +105,13 @@ export function formatGapSummary(
     line('Retail Cost', formatCurrency(inputs.retailCost)),
     line('Deductible', formatCurrency(inputs.deductible)),
     line('Approved Claim', formatCurrency(inputs.approvedClaimAmount)),
+    ...(inputs.agentName || inputs.agentPercent
+      ? [
+          line('Agent Name', inputs.agentName || '—'),
+          line('Agent %', `${inputs.agentPercent}%`),
+          line('Agent Original Commission', formatCurrency(results.agentOriginalCommission)),
+        ]
+      : []),
     '',
     'Derived Values:',
     line('  Days Used', String(results.daysUsed)),
@@ -102,6 +122,9 @@ export function formatGapSummary(
     line('  Amount Sent to Client', formatCurrency(results.refund.amountSentToClient)),
     line('  Client Refund to Customer', formatCurrency(results.refund.clientRefundToCustomer)),
     line('  Total Customer Receives', formatCurrency(results.refund.totalCustomerReceives)),
+    ...(inputs.agentPercent
+      ? [line('  Agent Chargeback', formatCurrency(results.refund.agentChargeback))]
+      : []),
   ]
 
   rows.push(...warningLines(warnings))
