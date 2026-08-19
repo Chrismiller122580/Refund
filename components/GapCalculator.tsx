@@ -15,7 +15,7 @@ import {
 import { formatGapSummary } from '@/lib/export'
 import { formatCurrency, formatPercent } from '@/lib/format'
 import { CaseManager } from './CaseManager'
-import { DateInput, Field, NumberInput } from './Field'
+import { DateInput, Field, NumberInput, TextInput } from './Field'
 import { ExportMenu } from './ExportMenu'
 import { ResultCard } from './ResultCard'
 import { TermPicker } from './TermPicker'
@@ -126,6 +126,28 @@ export function GapCalculator() {
             </Field>
             <Field label="Approved Claim Amount">
               <NumberInput value={inputs.approvedClaimAmount} onChange={(v) => update('approvedClaimAmount', v)} step={0.01} />
+            </Field>
+            <Field label="Agent Name" hint="Optional — for chargeback tracking">
+              <TextInput
+                value={inputs.agentName}
+                onChange={(v) => update('agentName', v)}
+                placeholder="Agent name"
+              />
+            </Field>
+            <Field label="Agent %" hint="Commission rate in percent (e.g. 10 = 10%)">
+              <NumberInput
+                value={inputs.agentPercent}
+                onChange={(v) => update('agentPercent', v)}
+                step={0.01}
+              />
+            </Field>
+            <Field label="Agent Chargeback" hint="Pro-rated on unearned dealer cost">
+              <NumberInput
+                value={results?.refund.agentChargeback ?? 0}
+                onChange={() => {}}
+                step={0.01}
+                readOnly
+              />
             </Field>
           </div>
         </section>
