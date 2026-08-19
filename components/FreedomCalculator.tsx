@@ -17,7 +17,7 @@ import {
   validateFreedomInputs,
   warningsForField,
 } from '@/lib/calculators/validation'
-import { formatFreedomSummary } from '@/lib/export'
+import { downloadFreedomExcel, formatFreedomSummary } from '@/lib/export'
 import { formatCurrency, formatNumber, formatPercent } from '@/lib/format'
 import { AdvisorCard } from './AdvisorCard'
 import { CaseManager } from './CaseManager'
@@ -245,9 +245,9 @@ export function FreedomCalculator() {
                   results
                     ? unlimitedMileage
                       ? results.refundPerDays.agentChargeback
-                      : (recommendation?.recommended === 'miles'
-                          ? results.refundPerMiles.agentChargeback
-                          : results.refundPerDays.agentChargeback)
+                      : recommendation?.recommended === 'miles'
+                        ? results.refundPerMiles.agentChargeback
+                        : results.refundPerDays.agentChargeback
                     : 0
                 }
                 onChange={() => {}}
@@ -299,11 +299,25 @@ export function FreedomCalculator() {
             <p className={panelSubheaderClass}>Dealer and customer refund breakdown</p>
           </div>
           <ExportMenu
-            filename={`freedom-refund-${new Date().toISOString().slice(0, 10)}.txt`}
+            filename={`freedom-refund-${new Date().toISOString().slice(0, 10)}`}
+            disabled={!results || !recommendation}
             getSummary={() =>
               results && recommendation
                 ? formatFreedomSummary(inputs, results, warnings, recommendation, termLabel)
                 : ''
+            }
+            onDownloadExcel={
+              results && recommendation
+                ? () =>
+                    downloadFreedomExcel(
+                      inputs,
+                      results,
+                      warnings,
+                      recommendation,
+                      termLabel,
+                      `freedom-refund-${new Date().toISOString().slice(0, 10)}.xlsx`,
+                    )
+                : undefined
             }
           />
         </div>
