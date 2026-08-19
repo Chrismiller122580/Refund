@@ -12,7 +12,7 @@ import {
   validateGapInputs,
   warningsForField,
 } from '@/lib/calculators/validation'
-import { formatGapSummary } from '@/lib/export'
+import { downloadGapExcel, formatGapSummary } from '@/lib/export'
 import { formatCurrency, formatPercent } from '@/lib/format'
 import { CaseManager } from './CaseManager'
 import { DateInput, Field, NumberInput, TextInput } from './Field'
@@ -193,8 +193,21 @@ export function GapCalculator() {
             <p className={panelSubheaderClass}>Dealer and customer refund breakdown</p>
           </div>
           <ExportMenu
-            filename={`gap-refund-${new Date().toISOString().slice(0, 10)}.txt`}
-            getSummary={() => results ? formatGapSummary(inputs, results, warnings, termLabel) : ''}
+            filename={`gap-refund-${new Date().toISOString().slice(0, 10)}`}
+            disabled={!results}
+            getSummary={() => (results ? formatGapSummary(inputs, results, warnings, termLabel) : '')}
+            onDownloadExcel={
+              results
+                ? () =>
+                    downloadGapExcel(
+                      inputs,
+                      results,
+                      warnings,
+                      termLabel,
+                      `gap-refund-${new Date().toISOString().slice(0, 10)}.xlsx`,
+                    )
+                : undefined
+            }
           />
         </div>
         {results && (
