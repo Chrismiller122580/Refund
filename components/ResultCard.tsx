@@ -41,6 +41,7 @@ interface ResultCardProps {
   amountSentToClient: number
   clientRefundToCustomer: number
   totalCustomerReceives: number
+  agentChargeback?: number
   accent?: 'freedom' | 'gap'
   recommended?: boolean
 }
@@ -50,11 +51,13 @@ export function ResultCard({
   amountSentToClient,
   clientRefundToCustomer,
   totalCustomerReceives,
+  agentChargeback,
   accent = 'freedom',
   recommended,
 }: ResultCardProps) {
   const isNegative = totalCustomerReceives < 0
   const accentColor = accent === 'gap' ? 'bg-slate-500' : 'bg-blue-500'
+  const showAgent = agentChargeback != null && agentChargeback !== 0
 
   return (
     <div
@@ -93,6 +96,13 @@ export function ResultCard({
           highlight
           negative={isNegative}
         />
+        {showAgent && (
+          <ResultRow
+            label="Agent Chargeback"
+            value={agentChargeback}
+            negative={agentChargeback < 0}
+          />
+        )}
       </div>
     </div>
   )

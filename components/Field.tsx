@@ -1,6 +1,6 @@
 'use client'
 
-import { dateInputClass, numberInputClass } from '@/lib/ui-classes'
+import { dateInputClass, inputClass, numberInputClass } from '@/lib/ui-classes'
 
 interface FieldProps {
   label: string
@@ -25,16 +25,37 @@ interface NumberInputProps {
   onChange: (value: number) => void
   step?: number
   hasError?: boolean
+  readOnly?: boolean
 }
 
-export function NumberInput({ value, onChange, step = 1, hasError }: NumberInputProps) {
+export function NumberInput({ value, onChange, step = 1, hasError, readOnly }: NumberInputProps) {
   return (
     <input
       type="number"
       value={value}
       step={step}
+      readOnly={readOnly}
       onChange={(e) => onChange(Number(e.target.value))}
       className={hasError ? numberInputClass.error : numberInputClass.base}
+    />
+  )
+}
+
+interface TextInputProps {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  hasError?: boolean
+}
+
+export function TextInput({ value, onChange, placeholder, hasError }: TextInputProps) {
+  return (
+    <input
+      type="text"
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      className={hasError ? numberInputClass.error : inputClass}
     />
   )
 }
