@@ -1,1 +1,191 @@
-PLACEHOLDER
+import { datedifDays } from './dateUtils'
+
+export interface FreedomInputs {
+  startMileage: number
+  endMileage: number
+  contractTermMiles: number
+  contractTermDays: number
+  startDate: string
+  endDate: string
+  cost: number
+  markup: number
+  deductible: number
+  approvedClaimAmount: number
+  unlimitedMileage: boolean
+  /** Agent name for chargeback tracking */
+  agentName: string
+  /** Agent commission rate in percent points (e.g. 10 = 10%) */
+  agentPercent: number
+}
+
+export interface ProratedBreakdown {
+  mileagePerDay: number
+  daysPerDiem: number
+  costPerMile: number
+  ourPercent: number
+  fwProratedProfit: number
+  clientProratedProfit: number
+}
+
+export interface RefundBreakdown {
+  amountSentToClient: number
+  clientRefundToCustomer: number
+  totalCustomerReceives: number
+  /** Pro-rated agent commission chargeback on unearned dealer cost */
+  agentChargeback: number
+}
+
+export interface FreedomResults {
+  mileCap: number
+  milesDriven: number
+  daysUsed: number
+  miles: ProratedBreakdown
+  days: ProratedBreakdown
+  refundPerMiles: RefundBreakdown
+  refundPerDays: RefundBreakdown
+  /** Original full agent commission (cost × agent%) before proration */
+  agentOriginalCommission: number
+}
+
+const EMPTY_PRORATED: ProratedBreakdown = {
+  mileagePerDay: 0,
+  daysPerDiem: 0,
+  costPerMile: 0,
+  ourPercent: 0,
+  fwProratedProfit: 0,
+  clientProratedProfit: 0,
+}
+
+const EMPTY_REFUND: RefundBreakdown = {
+  amountSentToClient: 0,
+  clientRefundToCustomer: 0,
+  totalCustomerReceives: 0,
+  agentChargeback: 0,
+}
+
+/** Agent chargeback = dealer cost × agent% × (1 − ourPercent) */
+function agentChargeback(cost: number, agentPercent: number, ourPercent: number): number {
+  if (!cost || !agentPercent) return 0
+  const rate = agentPercent / 100
+  const unearned = Math.max(0, 1 - ourPercent)
+  return cost * rate * unearned
+}
+
+export function calculateFreedom(inputs: FreedomInputs): FreedomResults {
+  const daysUsed = datedifDays(inputs.startDate, inputs.endDate)
+  const agentOriginalCommission =
+    inputs.cost && inputs.agentPercent ? inputs.cost * (inputs.agentPercent / 100) : 0
+
+  const daysPerDiem = inputs.cost / inputs.contractTermDays
+  const fwProratedProfitDays = daysPerDiem * daysUsed
+  const ourPercentDays = inputs.cost ? fwProratedProfitDays / inputs.cost : 0
+  const clientProratedProfitDays = ourPercentDays * inputs.markup
+
+  const deductions = inputs.deductible + inputs.approvedClaimAmount
+
+  const refundPerDays: RefundBreakdown = {
+    amountSentToClient: inputs.cost - fwProratedProfitDays - deductions,
+    clientRefundToCustomer: inputs.markup - clientProratedProfitDays,
+    totalCustomerReceives: 0,
+    agentChargeback: agentChargeback(inputs.cost, inputs.agentPercent, ourPercentDays),
+  }
+  refundPerDays.totalCustomerReceives =
+    refundPerDays.amountSentToClient + refundPerDays.clientRefundToCustomer
+
+  if (inputs.unlimitedMileage) {
+    return {
+      mileCap: 0,
+      milesDriven: 0,
+      daysUsed,
+      miles: EMPTY_PRORATED,
+      days: {
+        mileagePerDay: 0,
+        daysPerDiem,
+        costPerMile: 0,
+        ourPercent: ourPercentDays,
+        fwProratedProfit: fwProratedProfitDays,
+        clientProratedProfit: clientProratedProfitDays,
+      },
+      refundPerMiles: EMPTY_REFUND,
+      refundPerDays,
+      agentOriginalCommission,
+    }
+  }
+
+  const mileCap = inputs.startMileage + inputs.contractTermMiles
+  const milesDriven = inputs.endMileage - inputs.startMileage
+
+  const mileagePerDay = inputs.contractTermMiles / inputs.contractTermDays
+  const daysPerDiemMiles = inputs.cost / inputs.contractTermDays
+  const costPerMile = mileagePerDay ? daysPerDiemMiles / mileagePerDay : 0
+  const fwProratedProfitMiles = costPerMile * milesDriven
+  const ourPercentMiles = inputs.cost ? fwProratedProfitMiles / inputs.cost : 0
+  const clientProratedProfitMiles = inputs.markup * ourPercentMiles
+
+  const refundPerMiles: RefundBreakdown = {
+    amountSentToClient: inputs.cost - fwProratedProfitMiles - deductions,
+    clientRefundToCustomer: inputs.markup - clientProratedProfitMiles,
+    totalCustomerReceives: 0,
+    agentChargeback: agentChargeback(inputs.cost, inputs.agentPercent, ourPercentMiles),
+  }
+  refundPerMiles.totalCustomerReceives =
+    refundPerMiles.amountSentToClient + refundPerMiles.clientRefundToCustomer
+
+  return {
+    mileCap,
+    milesDriven,
+    daysUsed,
+    miles: {
+      mileagePerDay,
+      daysPerDiem: daysPerDiemMiles,
+      costPerMile,
+      ourPercent: ourPercentMiles,
+      fwProratedProfit: fwProratedProfitMiles,
+      clientProratedProfit: clientProratedProfitMiles,
+    },
+    days: {
+      mileagePerDay,
+      daysPerDiem,
+      costPerMile: 0,
+      ourPercent: ourPercentDays,
+      fwProratedProfit: fwProratedProfitDays,
+      clientProratedProfit: clientProratedProfitDays,
+    },
+    refundPerMiles,
+    refundPerDays,
+    agentOriginalCommission,
+  }
+}
+
+export const DEFAULT_FREEDOM_INPUTS: FreedomInputs = {
+  startMileage: 0,
+  endMileage: 0,
+  contractTermMiles: 0,
+  contractTermDays: 0,
+  startDate: '',
+  endDate: '',
+  cost: 0,
+  markup: 0,
+  deductible: 0,
+  approvedClaimAmount: 0,
+  unlimitedMileage: false,
+  agentName: '',
+  agentPercent: 0,
+}
+
+/** Sample data from the Excel workbook — used in tests only */
+export const EXAMPLE_FREEDOM_INPUTS: FreedomInputs = {
+  startMileage: 101520,
+  endMileage: 204145,
+  contractTermMiles: 5000,
+  contractTermDays: 1095,
+  startDate: '2024-06-25',
+  endDate: '2025-10-29',
+  cost: 1928,
+  markup: 1050,
+  deductible: 50,
+  approvedClaimAmount: 0,
+  unlimitedMileage: false,
+  agentName: '',
+  agentPercent: 0,
+}
