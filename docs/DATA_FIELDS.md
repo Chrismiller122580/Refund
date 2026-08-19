@@ -22,6 +22,8 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 | `deductible` | number | Yes | Contract deductible | Dollars |
 | `approvedClaimAmount` | number | Yes | Paid or approved claims | Dollars; use `0` if none |
 | `unlimitedMileage` | boolean | No | Product type flag | Default `false`; days-only mode |
+| `agentName` | string | No | Agent / producer name | Optional; for chargeback tracking |
+| `agentPercent` | number | No | Agent commission rate | Percent points (e.g. `10` = 10%) |
 
 \* Not required for calculation when `unlimitedMileage` is `true`, but may be omitted or zeroed.
 
@@ -36,6 +38,7 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 | `days` | object | Days-based proration breakdown |
 | `refundPerMiles` | object | Refund totals using mileage path |
 | `refundPerDays` | object | Refund totals using days path |
+| `agentOriginalCommission` | number | Full agent commission = `cost × agentPercent / 100` |
 
 ### Freedom — refund breakdown (each path)
 
@@ -44,6 +47,7 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 | `amountSentToClient` | number | Amount FW sends to client |
 | `clientRefundToCustomer` | number | Amount client refunds to customer |
 | `totalCustomerReceives` | number | Sum of the two — **primary customer-facing total** |
+| `agentChargeback` | number | Pro-rated agent chargeback = `cost × (agentPercent/100) × (1 − ourPercent)` |
 
 ### Freedom — recommendation
 
@@ -82,6 +86,8 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 | `retailCost` | number | Yes | Retail cost in FW |
 | `deductible` | number | Yes | Deductible from Classic refund sheet |
 | `approvedClaimAmount` | number | Yes | Approved claim amount |
+| `agentName` | string | No | Agent / producer name | Optional; for chargeback tracking |
+| `agentPercent` | number | No | Agent commission rate | Percent points (e.g. `10` = 10%) |
 
 ### GAP — response (`results`)
 
@@ -95,6 +101,8 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 | `refund.amountSentToClient` | number | Amount sent to client |
 | `refund.clientRefundToCustomer` | number | Client refund to customer |
 | `refund.totalCustomerReceives` | number | **Primary customer-facing total** |
+| `refund.agentChargeback` | number | Pro-rated agent chargeback = `fwCost × (agentPercent/100) × (1 − ourPercent)` |
+| `agentOriginalCommission` | number | Full agent commission = `fwCost × agentPercent / 100` |
 
 ---
 
