@@ -127,6 +127,13 @@ export function GapCalculator() {
             <Field label="Approved Claim Amount">
               <NumberInput value={inputs.approvedClaimAmount} onChange={(v) => update('approvedClaimAmount', v)} step={0.01} />
             </Field>
+            <Field label="Agent ID" hint="Optional — agent or agency ID for chargeback tracking">
+              <TextInput
+                value={inputs.agentId}
+                onChange={(v) => update('agentId', v)}
+                placeholder="Agent / agency ID"
+              />
+            </Field>
             <Field label="Agent Name" hint="Optional — for chargeback tracking">
               <TextInput
                 value={inputs.agentName}
