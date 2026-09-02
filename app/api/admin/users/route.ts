@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import { isUserRole, type UserRole } from '@/lib/auth'
-import { requireAdmin } from '@/lib/api-auth'
+import { requireAdmin, requireIntegrator } from '@/lib/api-auth'
 import { parseJsonBody } from '@/lib/api-inputs'
 import { hashPassword } from '@/lib/auth'
 import { createUser, ensureSchema, listUsers } from '@/lib/db'
 
 export async function GET(request: Request) {
-  const auth = await requireAdmin(request)
+  const auth = await requireIntegrator(request)
   if ('error' in auth) return auth.error
 
   await ensureSchema()
