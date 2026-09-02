@@ -30,6 +30,7 @@ describe('calculateFreedom', () => {
   it('computes agent chargeback from dealer cost × agent% × unearned portion', () => {
     const inputs = {
       ...EXAMPLE_FREEDOM_INPUTS,
+      agentId: 'AG-1001',
       agentName: 'Jane Agent',
       agentPercent: 10,
     }
