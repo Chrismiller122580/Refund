@@ -42,4 +42,21 @@ describe('calculateGap', () => {
       baseline.refund.clientRefundToCustomer,
     )
   })
+
+  it('computes agent chargeback from fwCost × agent% × unearned portion', () => {
+    const inputs = {
+      ...EXAMPLE_GAP_INPUTS,
+      agentId: 'AG-2002',
+      agentName: 'Sam Agent',
+      agentPercent: 15,
+    }
+    const results = calculateGap(inputs)
+
+    expect(results.agentOriginalCommission).toBeCloseTo(15.45, 6) // 103 × 0.15
+    const expected =
+      results.agentOriginalCommission * Math.max(0, 1 - results.prorated.ourPercent)
+
+    expect(results.refund.agentChargeback).toBeCloseTo(expected, 6)
+    expect(results.refund.agentChargeback).toBeGreaterThan(0)
+  })
 })
