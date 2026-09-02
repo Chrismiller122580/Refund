@@ -20,7 +20,7 @@ interface AppShellProps {
 
 export function AppShell({ active, children, headerExtra }: AppShellProps) {
   const { user, loading, logout } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const canOpenAdmin = user?.role === 'admin' || user?.role === 'it'
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-50 dark:from-slate-950 dark:to-slate-900">
@@ -38,9 +38,9 @@ export function AppShell({ active, children, headerExtra }: AppShellProps) {
             <Link href="/app/integration" className={active === 'integration' ? tabActiveClass : tabInactiveClass}>
               API Setup
             </Link>
-            {isAdmin && (
+            {canOpenAdmin && (
               <Link href="/app/admin" className={active === 'admin' ? tabActiveClass : tabInactiveClass}>
-                Admin
+                {user?.role === 'it' ? 'IT / API' : 'Admin'}
               </Link>
             )}
           </nav>

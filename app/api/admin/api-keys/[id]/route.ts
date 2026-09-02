@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/api-auth'
+import { requireIntegrator } from '@/lib/api-auth'
 import { parseJsonBody } from '@/lib/api-inputs'
 import { deleteApiKey, reinstateApiKey, revokeApiKey } from '@/lib/db'
 
@@ -7,7 +7,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const auth = await requireAdmin(request)
+  const auth = await requireIntegrator(request)
   if ('error' in auth) return auth.error
 
   const { id } = await params
@@ -29,7 +29,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const auth = await requireAdmin(request)
+  const auth = await requireIntegrator(request)
   if ('error' in auth) return auth.error
 
   const { id } = await params

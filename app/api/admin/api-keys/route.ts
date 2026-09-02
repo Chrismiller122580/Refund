@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/api-auth'
+import { requireIntegrator } from '@/lib/api-auth'
 import { generateApiKeyMaterial, hashApiKey } from '@/lib/api-keys'
 import { parseJsonBody } from '@/lib/api-inputs'
 import { createApiKeyRecord, ensureSchema, findUserById, listApiKeys } from '@/lib/db'
 import { sendApiKeyCreatedEmail } from '@/lib/email'
 
 export async function GET(request: Request) {
-  const auth = await requireAdmin(request)
+  const auth = await requireIntegrator(request)
   if ('error' in auth) return auth.error
 
   await ensureSchema()
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin(request)
+  const auth = await requireIntegrator(request)
   if ('error' in auth) return auth.error
 
   const body = await parseJsonBody<{ userId: string; name: string }>(request)

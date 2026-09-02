@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/api-auth'
+import { requireIntegrator } from '@/lib/api-auth'
 import { ensureSchema, listAllRecords } from '@/lib/db'
 import type { CaseType } from '@/lib/storage'
 
 export async function GET(request: Request) {
-  const auth = await requireAdmin(request)
+  const auth = await requireIntegrator(request)
   if ('error' in auth) return auth.error
 
   const url = new URL(request.url)
