@@ -195,8 +195,8 @@ export function UsersPanel() {
       <section className={panelClass}>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Create user</h2>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Add service accounts for external integrations. Prefer the <code className="text-xs">user</code>{' '}
-          role for API keys.
+          Add staff or service accounts. Use <code className="text-xs">it</code> for API key and integration
+          testing without full admin. Use <code className="text-xs">user</code> for calculator-only staff.
         </p>
         <form onSubmit={handleCreate} className="mt-6 space-y-4">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -226,6 +226,7 @@ export function UsersPanel() {
                 className={selectClass}
               >
                 <option value="user">User</option>
+                <option value="it">IT</option>
                 <option value="admin">Admin</option>
               </select>
             </Field>
@@ -267,6 +268,7 @@ export function UsersPanel() {
                   className={selectClass}
                 >
                   <option value="user">User</option>
+                  <option value="it">IT</option>
                   <option value="admin">Admin</option>
                 </select>
               </Field>
@@ -336,8 +338,10 @@ export function UsersPanel() {
                       <span
                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           user.role === 'admin'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-slate-100 text-slate-700 dark:text-slate-300'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
+                            : user.role === 'it'
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                              : 'bg-slate-100 text-slate-700 dark:text-slate-300'
                         }`}
                       >
                         {user.role}
