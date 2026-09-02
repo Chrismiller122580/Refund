@@ -12,6 +12,8 @@ export interface FreedomInputs {
   deductible: number
   approvedClaimAmount: number
   unlimitedMileage: boolean
+  /** Agent / agency identifier for chargeback tracking */
+  agentId: string
   /** Agent name for chargeback tracking */
   agentName: string
   /** Agent commission rate in percent points (e.g. 10 = 10%) */
@@ -169,6 +171,7 @@ export const DEFAULT_FREEDOM_INPUTS: FreedomInputs = {
   deductible: 0,
   approvedClaimAmount: 0,
   unlimitedMileage: false,
+  agentId: '',
   agentName: '',
   agentPercent: 0,
 }
@@ -186,6 +189,7 @@ export const EXAMPLE_FREEDOM_INPUTS: FreedomInputs = {
   deductible: 50,
   approvedClaimAmount: 0,
   unlimitedMileage: false,
+  agentId: '',
   agentName: '',
   agentPercent: 0,
 }
