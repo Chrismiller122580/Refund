@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/api-auth'
+import { requireAdminOrIntegrator } from '@/lib/api-auth'
 import { parseJsonBody } from '@/lib/api-inputs'
 import { createIntegrationFieldMapping, ensureSchema } from '@/lib/db'
 import { requireActiveApiKey } from '@/lib/integrations/admin'
@@ -10,7 +10,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string; type: string }> },
 ) {
-  const auth = await requireAdmin(request)
+  const auth = await requireAdminOrIntegrator(request)
   if ('error' in auth) return auth.error
 
   const { id, type } = await params

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/api-auth'
+import { requireAdminOrIntegrator } from '@/lib/api-auth'
 import { parseJsonBody } from '@/lib/api-inputs'
 import {
   deleteIntegrationFieldMapping,
@@ -13,7 +13,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string; type: string; fieldId: string }> },
 ) {
-  const auth = await requireAdmin(request)
+  const auth = await requireAdminOrIntegrator(request)
   if ('error' in auth) return auth.error
 
   const { id, type, fieldId } = await params
@@ -43,7 +43,7 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string; type: string; fieldId: string }> },
 ) {
-  const auth = await requireAdmin(_request)
+  const auth = await requireAdminOrIntegrator(_request)
   if ('error' in auth) return auth.error
 
   const { id, type, fieldId } = await params
