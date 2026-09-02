@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import type { UserRole } from '@/lib/auth'
+import { isUserRole, type UserRole } from '@/lib/auth'
 import { requireAdmin } from '@/lib/api-auth'
 import { parseJsonBody } from '@/lib/api-inputs'
 import { hashPassword } from '@/lib/auth'
@@ -21,7 +21,7 @@ export async function PATCH(
   if (body instanceof Response) return body
 
   const { email, role, is_active, password } = body
-  if (role && role !== 'user' && role !== 'admin') {
+  if (role && !isUserRole(role)) {
     return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
   }
   if (email !== undefined && !email.trim()) {

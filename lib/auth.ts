@@ -1,7 +1,23 @@
 import bcrypt from 'bcryptjs'
 import { SignJWT, jwtVerify } from 'jose'
 
-export type UserRole = 'user' | 'admin'
+export type UserRole = 'user' | 'it' | 'admin'
+
+export const USER_ROLES: UserRole[] = ['user', 'it', 'admin']
+
+export function isUserRole(value: unknown): value is UserRole {
+  return value === 'user' || value === 'it' || value === 'admin'
+}
+
+/** Full system admin */
+export function isAdminRole(role: UserRole | string | undefined): boolean {
+  return role === 'admin'
+}
+
+/** Can manage API keys, integration tests, and calculators — not user accounts */
+export function canManageIntegrations(role: UserRole | string | undefined): boolean {
+  return role === 'admin' || role === 'it'
+}
 
 export interface TokenPayload {
   userId: string

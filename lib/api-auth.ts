@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { extractApiKeyFromRequest, verifyApiKey } from './api-keys'
-import { verifyToken, type UserRole } from './auth'
+import { canManageIntegrations, isAdminRole, verifyToken, type UserRole } from './auth'
 import { ensureSchema, findUserById } from './db'
 
 export type AuthMethod = 'cookie' | 'api_key'
@@ -83,7 +83,19 @@ export async function requireAdmin(
 ): Promise<{ ctx: AuthContext } | { error: NextResponse }> {
   const result = await requireAuth(request)
   if ('error' in result) return result
-  if (result.ctx.role !== 'admin') {
+  if (!isAdminRole(result.ctx.role)) {
+    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
+  }
+  return result
+}
+
+/** Admin or IT: API keys, integration config/tests, records */
+export async function requireIntegrator(
+  request: Request,
+): Promise<{ ctx: AuthContext } | { error: NextResponse }> {
+  const result = await requireAuth(request)
+  if ('error' in result) return result
+  if (!canManageIntegrations(result.ctx.role)) {
     return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
   }
   return result

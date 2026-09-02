@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import type { UserRole } from '@/lib/auth'
+import { isUserRole, type UserRole } from '@/lib/auth'
 import { requireAdmin } from '@/lib/api-auth'
 import { parseJsonBody } from '@/lib/api-inputs'
 import { hashPassword } from '@/lib/auth'
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   if (!email?.trim() || !password) {
     return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
   }
-  if (role !== 'user' && role !== 'admin') {
+  if (!isUserRole(role)) {
     return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
   }
 
