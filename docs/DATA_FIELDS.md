@@ -22,6 +22,7 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 | `deductible` | number | Yes | Contract deductible | Dollars |
 | `approvedClaimAmount` | number | Yes | Paid or approved claims | Dollars; use `0` if none |
 | `unlimitedMileage` | boolean | No | Product type flag | Default `false`; days-only mode |
+| `agentId` | string | No | Agent / agency ID | Optional; stable identifier for chargeback tracking |
 | `agentName` | string | No | Agent / producer name | Optional; for chargeback tracking |
 | `agentPercent` | number | No | Agent commission rate | Percent points (e.g. `10` = 10%) |
 
@@ -86,6 +87,7 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 | `retailCost` | number | Yes | Retail cost in FW |
 | `deductible` | number | Yes | Deductible from Classic refund sheet |
 | `approvedClaimAmount` | number | Yes | Approved claim amount |
+| `agentId` | string | No | Agent / agency ID | Optional; stable identifier for chargeback tracking |
 | `agentName` | string | No | Agent / producer name | Optional; for chargeback tracking |
 | `agentPercent` | number | No | Agent commission rate | Percent points (e.g. `10` = 10%) |
 
