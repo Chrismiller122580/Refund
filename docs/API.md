@@ -1,6 +1,6 @@
 # Refund Calculators API
 
-**Version:** 1.0  
+**Version:** 1.3  
 **Base URL:** `https://refund-mocha-psi.vercel.app`  
 **Content-Type:** `application/json`
 
@@ -64,7 +64,7 @@ curl -c cookies.txt -X POST https://refund-mocha-psi.vercel.app/api/auth/login \
 # Authenticated request
 curl -b cookies.txt -X POST https://refund-mocha-psi.vercel.app/api/calculate/freedom \
   -H "Content-Type: application/json" \
-  -d '{"startMileage":101520,"endMileage":204145,"contractTermMiles":5000,"contractTermDays":1095,"startDate":"2024-06-25","endDate":"2025-10-29","cost":1928,"markup":1050,"deductible":50,"approvedClaimAmount":0,"unlimitedMileage":false}'
+  -d '{"startMileage":101520,"endMileage":204145,"contractTermMiles":5000,"contractTermDays":1095,"startDate":"2024-06-25","endDate":"2025-10-29","cost":1928,"markup":1050,"deductible":50,"approvedClaimAmount":0,"unlimitedMileage":false,"agentId":"AG-1001","agentName":"Jane Agent","agentPercent":10}'
 ```
 
 ### Example (JavaScript fetch)
@@ -223,6 +223,9 @@ Calculate Freedom warranty refunds using mileage-based and days-based paths.
 | `deductible` | number | Yes | Deductible amount ($) |
 | `approvedClaimAmount` | number | Yes | Approved claim amount ($) |
 | `unlimitedMileage` | boolean | No | When `true`, only the days-based path is used (defaults to `false`) |
+| `agentId` | string | No | Agent or agency ID for chargeback tracking |
+| `agentName` | string | No | Agent or producer name for chargeback tracking |
+| `agentPercent` | number | No | Agent commission rate in percent points (e.g. `10` = 10%) |
 
 **Response `200`:**
 
@@ -252,13 +255,16 @@ Calculate Freedom warranty refunds using mileage-based and days-based paths.
     "refundPerMiles": {
       "amountSentToClient": -37694.2,
       "clientRefundToCustomer": -20501.25,
-      "totalCustomerReceives": -58195.45
+      "totalCustomerReceives": -58195.45,
+      "agentChargeback": 0
     },
     "refundPerDays": {
       "amountSentToClient": 1013.48,
       "clientRefundToCustomer": 579.18,
-      "totalCustomerReceives": 1592.66
-    }
+      "totalCustomerReceives": 1592.66,
+      "agentChargeback": 105.5
+    },
+    "agentOriginalCommission": 192.8
   },
   "warnings": [
     {
@@ -313,6 +319,9 @@ Calculate GAP warranty refunds (days-based only).
 | `retailCost` | number | Yes | Retail cost in FW ($) |
 | `deductible` | number | Yes | Deductible from Classic refund sheet ($) |
 | `approvedClaimAmount` | number | Yes | Approved claim amount ($) |
+| `agentId` | string | No | Agent or agency ID for chargeback tracking |
+| `agentName` | string | No | Agent or producer name for chargeback tracking |
+| `agentPercent` | number | No | Agent commission rate in percent points (e.g. `10` = 10%) |
 
 **Response `200`:**
 
@@ -329,8 +338,10 @@ Calculate GAP warranty refunds (days-based only).
     "refund": {
       "amountSentToClient": -8.57,
       "clientRefundToCustomer": 343.87,
-      "totalCustomerReceives": 335.30
-    }
+      "totalCustomerReceives": 335.30,
+      "agentChargeback": 6.18
+    },
+    "agentOriginalCommission": 15.45
   },
   "warnings": []
 }
@@ -489,6 +500,7 @@ No explicit rate limits are configured. Use reasonable request pacing (the web U
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.3 | 2026-09-02 | Added `agentId`, `agentName`, `agentPercent` inputs; `agentChargeback` and `agentOriginalCommission` in results; OpenAPI + API.md aligned |
 | 1.2 | 2026-07-07 | API keys, admin role, user management, integration docs |
 | 1.1 | 2026-07-07 | PATCH cases, unlimited mileage, input normalization |
 | 1.0 | 2026-06-09 | Initial API: auth, Freedom/GAP calculate, cases CRUD |
