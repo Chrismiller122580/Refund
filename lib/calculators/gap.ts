@@ -8,6 +8,8 @@ export interface GapInputs {
   retailCost: number
   deductible: number
   approvedClaimAmount: number
+  /** Agent / agency identifier for chargeback tracking */
+  agentId: string
   /** Agent name for chargeback tracking */
   agentName: string
   /** Agent commission rate in percent points (e.g. 10 = 10%) */
@@ -86,6 +88,7 @@ export const DEFAULT_GAP_INPUTS: GapInputs = {
   retailCost: 0,
   deductible: 0,
   approvedClaimAmount: 0,
+  agentId: '',
   agentName: '',
   agentPercent: 0,
 }
@@ -99,6 +102,7 @@ export const EXAMPLE_GAP_INPUTS: GapInputs = {
   retailCost: 855,
   deductible: 50,
   approvedClaimAmount: 0,
+  agentId: '',
   agentName: '',
   agentPercent: 0,
 }
