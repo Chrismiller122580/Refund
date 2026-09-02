@@ -21,7 +21,7 @@ export async function PATCH(
   if (body instanceof Response) return body
 
   const { email, role, is_active, password } = body
-  if (role && role !== 'user' && role !== 'admin') {
+  if (role && role !== 'user' && role !== 'admin' && role !== 'integrator') {
     return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
   }
   if (email !== undefined && !email.trim()) {

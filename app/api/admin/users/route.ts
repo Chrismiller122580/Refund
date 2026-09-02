@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   if (!email?.trim() || !password) {
     return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
   }
-  if (role !== 'user' && role !== 'admin') {
+  if (role !== 'user' && role !== 'admin' && role !== 'integrator') {
     return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
   }
 

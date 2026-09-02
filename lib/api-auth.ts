@@ -89,6 +89,17 @@ export async function requireAdmin(
   return result
 }
 
+export async function requireAdminOrIntegrator(
+  request: Request,
+): Promise<{ ctx: AuthContext } | { error: NextResponse }> {
+  const result = await requireAuth(request)
+  if ('error' in result) return result
+  if (result.ctx.role !== 'admin' && result.ctx.role !== 'integrator') {
+    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
+  }
+  return result
+}
+
 /** @deprecated Use getAuthContext(request) */
 export async function getSession() {
   const cookieStore = await cookies()

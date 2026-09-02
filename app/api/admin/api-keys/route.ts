@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/api-auth'
+import { requireAdminOrIntegrator } from '@/lib/api-auth'
 import { generateApiKeyMaterial, hashApiKey } from '@/lib/api-keys'
 import { parseJsonBody } from '@/lib/api-inputs'
 import { createApiKeyRecord, ensureSchema, findUserById, listApiKeys } from '@/lib/db'
 import { sendApiKeyCreatedEmail } from '@/lib/email'
 
 export async function GET(request: Request) {
-  const auth = await requireAdmin(request)
+  const auth = await requireAdminOrIntegrator(request)
   if ('error' in auth) return auth.error
 
   await ensureSchema()
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin(request)
+  const auth = await requireAdminOrIntegrator(request)
   if ('error' in auth) return auth.error
 
   const body = await parseJsonBody<{ userId: string; name: string }>(request)
@@ -30,6 +30,12 @@ export async function POST(request: Request) {
   const user = await findUserById(userId)
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
+  if (user.role === 'admin') {
+    return NextResponse.json(
+      { error: 'API keys cannot be created for admin users. Use a user or integrator account.' },
+      { status: 400 },
+    )
   }
 
   const { key, prefix } = generateApiKeyMaterial()
