@@ -8,5 +8,10 @@
     "email": "api-service@yourcompany.com",
     "password": "replace-with-strong-password",
     "role": "user"
+  },
+  {
+    "email": "it@yourcompany.com",
+    "password": "replace-with-strong-password",
+    "role": "it"
   }
 ]
