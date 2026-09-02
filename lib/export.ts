@@ -42,8 +42,9 @@ export function formatFreedomSummary(
     line('Mark Up', formatCurrency(inputs.markup)),
     line('Deductible', formatCurrency(inputs.deductible)),
     line('Approved Claim', formatCurrency(inputs.approvedClaimAmount)),
-    ...(inputs.agentName || inputs.agentPercent
+    ...(inputs.agentId || inputs.agentName || inputs.agentPercent
       ? [
+          line('Agent ID', inputs.agentId || '—'),
           line('Agent Name', inputs.agentName || '—'),
           line('Agent %', `${inputs.agentPercent}%`),
           line('Agent Original Commission', formatCurrency(results.agentOriginalCommission)),
@@ -106,8 +107,9 @@ export function formatGapSummary(
     line('Retail Cost', formatCurrency(inputs.retailCost)),
     line('Deductible', formatCurrency(inputs.deductible)),
     line('Approved Claim', formatCurrency(inputs.approvedClaimAmount)),
-    ...(inputs.agentName || inputs.agentPercent
+    ...(inputs.agentId || inputs.agentName || inputs.agentPercent
       ? [
+          line('Agent ID', inputs.agentId || '—'),
           line('Agent Name', inputs.agentName || '—'),
           line('Agent %', `${inputs.agentPercent}%`),
           line('Agent Original Commission', formatCurrency(results.agentOriginalCommission)),
@@ -206,8 +208,9 @@ export function downloadFreedomExcel(
     kv('Mark Up', inputs.markup),
     kv('Deductible', inputs.deductible),
     kv('Approved Claim Amount', inputs.approvedClaimAmount),
-    ...(inputs.agentName || inputs.agentPercent
+    ...(inputs.agentId || inputs.agentName || inputs.agentPercent
       ? [
+          kv('Agent ID', inputs.agentId || '—'),
           kv('Agent Name', inputs.agentName || '—'),
           kv('Agent %', inputs.agentPercent),
           kv('Agent Original Commission', results.agentOriginalCommission),
@@ -304,8 +307,9 @@ export function downloadGapExcel(
     kv('Retail Cost', inputs.retailCost),
     kv('Deductible', inputs.deductible),
     kv('Approved Claim Amount', inputs.approvedClaimAmount),
-    ...(inputs.agentName || inputs.agentPercent
+    ...(inputs.agentId || inputs.agentName || inputs.agentPercent
       ? [
+          kv('Agent ID', inputs.agentId || '—'),
           kv('Agent Name', inputs.agentName || '—'),
           kv('Agent %', inputs.agentPercent),
           kv('Agent Original Commission', results.agentOriginalCommission),
