@@ -6,7 +6,7 @@ info:
 
     Authentication uses a JWT stored in an httpOnly cookie named `token` (7-day lifetime).
     All endpoints except `POST /api/auth/login` require a valid session cookie.
-  version: 1.2.0
+  version: 1.3.0
   contact:
     name: Refund Calculators
     url: https://github.com/Chrismiller122580/Refund
@@ -172,6 +172,9 @@ paths:
               deductible: 50
               approvedClaimAmount: 0
               unlimitedMileage: false
+              agentId: AG-1001
+              agentName: Jane Agent
+              agentPercent: 10
       responses:
         '200':
           description: Calculation results
@@ -217,6 +220,9 @@ paths:
               retailCost: 855
               deductible: 50
               approvedClaimAmount: 0
+              agentId: AG-2002
+              agentName: Sam Agent
+              agentPercent: 15
       responses:
         '200':
           description: Calculation results
@@ -312,6 +318,9 @@ paths:
                     markup: 1050
                     deductible: 50
                     approvedClaimAmount: 0
+                    agentId: AG-1001
+                    agentName: Jane Agent
+                    agentPercent: 10
               gap:
                 summary: GAP case
                 value:
@@ -325,6 +334,9 @@ paths:
                     retailCost: 855
                     deductible: 50
                     approvedClaimAmount: 0
+                    agentId: AG-2002
+                    agentName: Sam Agent
+                    agentPercent: 15
       responses:
         '200':
           description: Case saved
@@ -344,7 +356,7 @@ paths:
                   value:
                     error: Case name is required
                 invalidType:
-                  summary: Invalid case type
+                  summary: Invalid type
                   value:
                     error: Invalid type
         '401':
@@ -721,6 +733,15 @@ components:
           type: boolean
           default: false
           description: When true, refund is calculated by time only (no mileage path)
+        agentId:
+          type: string
+          description: Agent or agency identifier for chargeback tracking
+        agentName:
+          type: string
+          description: Agent or producer name for chargeback tracking
+        agentPercent:
+          type: number
+          description: Agent commission rate in percent points (e.g. 10 = 10%)
       additionalProperties: false
 
     GapInputs:
@@ -753,6 +774,15 @@ components:
         approvedClaimAmount:
           type: number
           description: Approved claim amount ($)
+        agentId:
+          type: string
+          description: Agent or agency identifier for chargeback tracking
+        agentName:
+          type: string
+          description: Agent or producer name for chargeback tracking
+        agentPercent:
+          type: number
+          description: Agent commission rate in percent points (e.g. 10 = 10%)
       additionalProperties: false
 
     ProratedBreakdown:
@@ -791,6 +821,7 @@ components:
         - amountSentToClient
         - clientRefundToCustomer
         - totalCustomerReceives
+        - agentChargeback
       properties:
         amountSentToClient:
           type: number
@@ -801,6 +832,9 @@ components:
         totalCustomerReceives:
           type: number
           description: Total amount customer receives ($)
+        agentChargeback:
+          type: number
+          description: Pro-rated agent chargeback = cost × (agentPercent/100) × (1 − ourPercent)
       additionalProperties: false
 
     FreedomResults:
@@ -813,6 +847,7 @@ components:
         - days
         - refundPerMiles
         - refundPerDays
+        - agentOriginalCommission
       properties:
         mileCap:
           type: number
@@ -833,6 +868,9 @@ components:
           $ref: '#/components/schemas/RefundBreakdown'
         refundPerDays:
           $ref: '#/components/schemas/RefundBreakdown'
+        agentOriginalCommission:
+          type: number
+          description: Full agent commission before proration = cost × agentPercent / 100
       additionalProperties: false
 
     GapProratedBreakdown:
@@ -863,6 +901,7 @@ components:
         - amountSentToClient
         - clientRefundToCustomer
         - totalCustomerReceives
+        - agentChargeback
       properties:
         amountSentToClient:
           type: number
@@ -873,6 +912,9 @@ components:
         totalCustomerReceives:
           type: number
           description: Total amount customer receives ($)
+        agentChargeback:
+          type: number
+          description: Pro-rated agent chargeback = fwCost × (agentPercent/100) × (1 − ourPercent)
       additionalProperties: false
 
     GapResults:
@@ -881,6 +923,7 @@ components:
         - daysUsed
         - prorated
         - refund
+        - agentOriginalCommission
       properties:
         daysUsed:
           type: number
@@ -889,6 +932,9 @@ components:
           $ref: '#/components/schemas/GapProratedBreakdown'
         refund:
           $ref: '#/components/schemas/GapRefundBreakdown'
+        agentOriginalCommission:
+          type: number
+          description: Full agent commission before proration = fwCost × agentPercent / 100
       additionalProperties: false
 
     WarningSeverity:
