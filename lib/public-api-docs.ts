@@ -13,15 +13,15 @@ This documentation covers integrator-facing endpoints only. Admin setup, interna
 
 Send the key on every request using one of these headers:
 
-\`\`\`http
+```http
 Authorization: Bearer rfnd_<your-api-key>
-\`\`\`
+```
 
 Or:
 
-\`\`\`http
+```http
 X-API-Key: rfnd_<your-api-key>
-\`\`\`
+```
 
 API keys are tied to a service account. Contact your administrator to request a key. Keys are shown once at creation and cannot be retrieved later.`,
   },
@@ -30,19 +30,19 @@ API keys are tied to a service account. Contact your administrator to request a 
     title: 'Calculate refunds',
     content: `### VSC (Freedom)
 
-\`POST /api/calculate/freedom\`
+` + '`POST /api/calculate/freedom`' + `
 
 ### Gap
 
-\`POST /api/calculate/gap\`
+` + '`POST /api/calculate/gap`' + `
 
-Both endpoints require \`Content-Type: application/json\`.
+Both endpoints require ` + '`Content-Type: application/json`' + `.
 
 ### Required for API key requests
 
 | Field | Type | Description |
 |-------|------|-------------|
-| \`contractNumber\` | string | Your contract identifier for tracking |
+| ` + '`contractNumber`' + ` | string | Your contract identifier for tracking |
 | Calculator fields | object | Dates, costs, mileage, and term data (see field tables below) |
 
 Each API-key calculate request is automatically saved as a tracked record on our side.
@@ -51,56 +51,56 @@ Each API-key calculate request is automatically saved as a tracked record on our
 
 | Field | Description |
 |-------|-------------|
-| \`contractNumber\` | Echo of the contract you sent |
-| \`results\` | Calculated refund breakdown |
-| \`warnings\` | Input validation messages |
-| \`recommendation\` | VSC only — which refund path to use |
-| \`case\` | Saved record \`id\`, \`savedAt\`, and \`contractNumber\` |`,
+| ` + '`contractNumber`' + ` | Echo of the contract you sent |
+| ` + '`results`' + ` | Calculated refund breakdown |
+| ` + '`warnings`' + ` | Input validation messages |
+| ` + '`recommendation`' + ` | VSC only — which refund path to use |
+| ` + '`case`' + ` | Saved record ` + '`id`' + `, ` + '`savedAt`' + `, and ` + '`contractNumber`' + ` |`,
   },
   {
     id: 'freedom-fields',
     title: 'VSC request fields',
     content: `| Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| \`contractNumber\` | string | Yes | Contract identifier |
-| \`startMileage\` | number | Yes* | Odometer at contract start |
-| \`endMileage\` | number | Yes* | Odometer at cancellation |
-| \`contractTermMiles\` | number | Yes* | Total miles on contract |
-| \`contractTermDays\` | number | Yes | Total days on contract |
-| \`startDate\` | string | Yes | Effective date (\`YYYY-MM-DD\`) |
-| \`endDate\` | string | Yes | Cancellation date (\`YYYY-MM-DD\`) |
-| \`cost\` | number | Yes | FW cost ($) |
-| \`markup\` | number | Yes | Client markup ($) |
-| \`deductible\` | number | Yes | Deductible ($) |
-| \`approvedClaimAmount\` | number | Yes | Approved claims ($); use \`0\` if none |
-| \`unlimitedMileage\` | boolean | No | Days-only mode; default \`false\` |
+| contractNumber | string | Yes | Contract identifier |
+| startMileage | number | Yes* | Odometer at contract start |
+| endMileage | number | Yes* | Odometer at cancellation |
+| contractTermMiles | number | Yes* | Total miles on contract |
+| contractTermDays | number | Yes | Total days on contract |
+| startDate | string | Yes | Effective date (YYYY-MM-DD) |
+| endDate | string | Yes | Cancellation date (YYYY-MM-DD) |
+| cost | number | Yes | FW cost ($) |
+| markup | number | Yes | Client markup ($) |
+| deductible | number | Yes | Deductible ($) |
+| approvedClaimAmount | number | Yes | Approved claims ($); use 0 if none |
+| unlimitedMileage | boolean | No | Days-only mode; default false |
 
-*Ignored when \`unlimitedMileage\` is \`true\`.
+*Ignored when unlimitedMileage is true.
 
-**Primary result:** \`recommendation.daysTotal\` or \`recommendation.milesTotal\` depending on \`recommendation.recommended\`.`,
+Primary result: recommendation.daysTotal or recommendation.milesTotal depending on recommendation.recommended.`,
   },
   {
     id: 'gap-fields',
     title: 'Gap request fields',
     content: `| Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| \`contractNumber\` | string | Yes | Contract identifier |
-| \`contractTermDays\` | number | Yes | Total days on contract |
-| \`startDate\` | string | Yes | Effective date (\`YYYY-MM-DD\`) |
-| \`endDate\` | string | Yes | Cancellation date (\`YYYY-MM-DD\`) |
-| \`fwCost\` | number | Yes | Amount paid to Classic ($) |
-| \`retailCost\` | number | Yes | Retail price ($) |
-| \`deductible\` | number | Yes | Deductible ($) |
-| \`approvedClaimAmount\` | number | Yes | Approved claims ($); use \`0\` if none |
+| contractNumber | string | Yes | Contract identifier |
+| contractTermDays | number | Yes | Total days on contract |
+| startDate | string | Yes | Effective date (YYYY-MM-DD) |
+| endDate | string | Yes | Cancellation date (YYYY-MM-DD) |
+| fwCost | number | Yes | Amount paid to Classic ($) |
+| retailCost | number | Yes | Retail price ($) |
+| deductible | number | Yes | Deductible ($) |
+| approvedClaimAmount | number | Yes | Approved claims ($); use 0 if none |
 
-**Primary result:** \`results.refund.totalCustomerReceives\``,
+Primary result: results.refund.totalCustomerReceives`,
   },
   {
     id: 'example',
     title: 'Example request',
-    content: `Replace \`YOUR_API_KEY\` and field values with your contract data.
+    content: `Replace YOUR_API_KEY and field values with your contract data.
 
-\`\`\`bash
+```bash
 curl -s -X POST "$BASE_URL/api/calculate/freedom" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
@@ -117,30 +117,30 @@ curl -s -X POST "$BASE_URL/api/calculate/freedom" \\
     "deductible": 50,
     "approvedClaimAmount": 0
   }'
-\`\`\`
+```
 
-Use your deployment URL as \`BASE_URL\` (for example, the URL shown after you sign in).`,
+Use your deployment URL as BASE_URL (for example, the URL shown after you sign in).`,
   },
   {
     id: 'errors',
     title: 'Error handling',
     content: `| Status | Meaning |
 |--------|---------|
-| \`400\` | Missing \`contractNumber\` or invalid request body |
-| \`401\` | Missing or invalid API key |
-| \`500\` | Server error — retry with backoff |
+| 400 | Missing contractNumber or invalid request body |
+| 401 | Missing or invalid API key |
+| 500 | Server error — retry with backoff |
 
-Errors return JSON: \`{ "error": "message", "hint": "how to fix it" }\`
+Errors return JSON: { "error": "message", "hint": "how to fix it" }
 
 ### Invalid JSON body
 
 This means the HTTP body failed to parse as JSON. It is not a field-validation error.
 
 Fix:
-- Send header \`Content-Type: application/json\`
+- Send header Content-Type: application/json
 - Use raw JSON (Postman/Insomnia: Body → raw → JSON), not form fields
 - Use double quotes on keys and strings; no trailing commas
 - Do not send an empty body
-- Include \`contractNumber\` on API-key calculate calls`,
+- Include contractNumber on API-key calculate calls`,
   },
 ] as const
