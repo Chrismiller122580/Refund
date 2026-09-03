@@ -5,6 +5,7 @@ import { canManageTickets } from '@/lib/auth'
 import { ensureSchema } from '@/lib/db'
 import {
   createTicket,
+  ensureTicketSchema,
   listTickets,
   parseCategory,
   parsePriority,
@@ -16,6 +17,7 @@ export async function GET(request: Request) {
   if ('error' in auth) return auth.error
 
   await ensureSchema()
+  await ensureTicketSchema()
   const url = new URL(request.url)
   const status = parseStatus(url.searchParams.get('status'))
   const staff = canManageTickets(auth.ctx.role)
@@ -48,6 +50,7 @@ export async function POST(request: Request) {
   const priority = parsePriority(body.priority) ?? 'normal'
 
   await ensureSchema()
+  await ensureTicketSchema()
   const ticket = await createTicket({
     createdBy: auth.ctx.userId,
     title,
