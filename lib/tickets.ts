@@ -1,5 +1,34 @@
 import { getSql } from './db-connection'
 
+export async function ensureTicketSchema() {
+  const sql = getSql()
+  await sql`
+    CREATE TABLE IF NOT EXISTS support_tickets (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      assigned_to UUID REFERENCES users(id) ON DELETE SET NULL,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT 'other',
+      status TEXT NOT NULL DEFAULT 'open',
+      priority TEXT NOT NULL DEFAULT 'normal',
+      created_at TIMESTAMPTZ DEFAULT now(),
+      updated_at TIMESTAMPTZ DEFAULT now()
+    )
+  `
+  await sql`
+    CREATE TABLE IF NOT EXISTS support_ticket_comments (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      ticket_id UUID NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      body TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT now()
+    )
+  `
+  await sql`CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets (status, updated_at DESC)`
+  await sql`CREATE INDEX IF NOT EXISTS idx_support_tickets_created_by ON support_tickets (created_by)`
+}
+
 export const TICKET_STATUSES = ['open', 'in_progress', 'waiting', 'resolved', 'closed'] as const
 export const TICKET_PRIORITIES = ['low', 'normal', 'high'] as const
 export const TICKET_CATEGORIES = [
