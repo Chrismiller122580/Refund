@@ -3,7 +3,7 @@ import { requireAuth } from '@/lib/api-auth'
 import { parseJsonBody } from '@/lib/api-inputs'
 import { canManageTickets } from '@/lib/auth'
 import { ensureSchema } from '@/lib/db'
-import { addTicketComment, getTicket, listTicketComments } from '@/lib/tickets'
+import { addTicketComment, ensureTicketSchema, getTicket, listTicketComments } from '@/lib/tickets'
 
 export async function GET(
   request: Request,
@@ -14,6 +14,7 @@ export async function GET(
 
   const { id } = await params
   await ensureSchema()
+  await ensureTicketSchema()
   const ticket = await getTicket(id)
   if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   if (!canManageTickets(auth.ctx.role) && ticket.createdBy !== auth.ctx.userId) {
@@ -39,6 +40,7 @@ export async function POST(
   }
 
   await ensureSchema()
+  await ensureTicketSchema()
   const ticket = await getTicket(id)
   if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   if (!canManageTickets(auth.ctx.role) && ticket.createdBy !== auth.ctx.userId) {

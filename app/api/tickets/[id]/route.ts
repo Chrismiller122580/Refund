@@ -4,6 +4,7 @@ import { parseJsonBody } from '@/lib/api-inputs'
 import { canManageTickets } from '@/lib/auth'
 import { ensureSchema } from '@/lib/db'
 import {
+  ensureTicketSchema,
   getTicket,
   parseCategory,
   parsePriority,
@@ -20,6 +21,7 @@ export async function GET(
 
   const { id } = await params
   await ensureSchema()
+  await ensureTicketSchema()
   const ticket = await getTicket(id)
   if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   if (!canManageTickets(auth.ctx.role) && ticket.createdBy !== auth.ctx.userId) {
@@ -47,6 +49,7 @@ export async function PATCH(
   if (body instanceof Response) return body
 
   await ensureSchema()
+  await ensureTicketSchema()
   const existing = await getTicket(id)
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
