@@ -13,7 +13,7 @@ import {
 } from '@/lib/ui-classes'
 
 interface AppShellProps {
-  active: 'calculators' | 'integration' | 'admin'
+  active: 'calculators' | 'integration' | 'tickets' | 'admin'
   children: React.ReactNode
   headerExtra?: React.ReactNode
 }
@@ -37,6 +37,9 @@ export function AppShell({ active, children, headerExtra }: AppShellProps) {
             </Link>
             <Link href="/app/integration" className={active === 'integration' ? tabActiveClass : tabInactiveClass}>
               API Setup
+            </Link>
+            <Link href="/app/tickets" className={active === 'tickets' ? tabActiveClass : tabInactiveClass}>
+              Tickets
             </Link>
             {canOpenAdmin && (
               <Link href="/app/admin" className={active === 'admin' ? tabActiveClass : tabInactiveClass}>
