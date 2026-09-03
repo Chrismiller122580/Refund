@@ -19,6 +19,11 @@ export function canManageIntegrations(role: UserRole | string | undefined): bool
   return role === 'admin' || role === 'it'
 }
 
+/** Can see and manage the full support ticket board */
+export function canManageTickets(role: UserRole | string | undefined): boolean {
+  return role === 'admin' || role === 'it'
+}
+
 export interface TokenPayload {
   userId: string
   email: string
