@@ -130,6 +130,17 @@ Use your deployment URL as \`BASE_URL\` (for example, the URL shown after you si
 | \`401\` | Missing or invalid API key |
 | \`500\` | Server error — retry with backoff |
 
-Errors return JSON: \`{ "error": "message" }\``,
+Errors return JSON: \`{ "error": "message", "hint": "how to fix it" }\`
+
+### Invalid JSON body
+
+This means the HTTP body failed to parse as JSON. It is not a field-validation error.
+
+Fix:
+- Send header \`Content-Type: application/json\`
+- Use raw JSON (Postman/Insomnia: Body → raw → JSON), not form fields
+- Use double quotes on keys and strings; no trailing commas
+- Do not send an empty body
+- Include \`contractNumber\` on API-key calculate calls`,
   },
 ] as const
