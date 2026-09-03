@@ -92,10 +92,31 @@ export function parseGapCalculateRequest(
   }
 }
 
+export const INVALID_JSON_HINT =
+  'The request body must be raw JSON with Content-Type: application/json. In Postman/Insomnia use Body → raw → JSON. Do not send form fields, trailing commas, or single quotes.'
+
 export async function parseJsonBody<T>(request: Request): Promise<T | Response> {
   try {
-    return (await request.json()) as T
+    const text = await request.text()
+    if (!text.trim()) {
+      return Response.json(
+        {
+          error: 'Invalid JSON body',
+          hint: 'Request body is empty. Send a JSON object with calculator fields.',
+          docs: '/docs#errors',
+        },
+        { status: 400 },
+      )
+    }
+    return JSON.parse(text) as T
   } catch {
-    return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
+    return Response.json(
+      {
+        error: 'Invalid JSON body',
+        hint: INVALID_JSON_HINT,
+        docs: '/docs#errors',
+      },
+      { status: 400 },
+    )
   }
 }

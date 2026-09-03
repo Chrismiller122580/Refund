@@ -94,6 +94,33 @@ export function IntegrationSetup() {
           <pre className={`mt-3 ${codeBlockClass}`}>Authorization: Bearer rfnd_YOUR_API_KEY</pre>
         </section>
 
+        <section className="rounded-xl border border-amber-200 bg-amber-50 p-6 shadow-sm dark:border-amber-900 dark:bg-amber-950/30">
+          <h2 className="text-lg font-semibold text-amber-950 dark:text-amber-100">
+            If you see “Invalid JSON body”
+          </h2>
+          <p className="mt-2 text-sm text-amber-900 dark:text-amber-200">
+            That error means the HTTP body is not valid JSON — not that a calculator field is wrong.
+            Fix the request packaging first:
+          </p>
+          <ul className="mt-3 list-inside list-disc space-y-1 text-sm text-amber-900 dark:text-amber-200">
+            <li>
+              Set header <code className="rounded bg-white/70 px-1 dark:bg-slate-900/60">Content-Type: application/json</code>
+            </li>
+            <li>Send <strong>raw JSON</strong> (Postman/Insomnia: Body → raw → JSON). Not form-data or x-www-form-urlencoded.</li>
+            <li>Use double quotes on keys and strings. No trailing commas. No comments.</li>
+            <li>
+              Include <code className="rounded bg-white/70 px-1 dark:bg-slate-900/60">contractNumber</code> on every API-key calculate call.
+            </li>
+            <li>
+              Auth header: <code className="rounded bg-white/70 px-1 dark:bg-slate-900/60">Authorization: Bearer rfnd_…</code>
+            </li>
+          </ul>
+          <p className="mt-3 text-sm text-amber-900 dark:text-amber-200">
+            Paste the example below, swap in your key and contract values, then retry. If it still fails,
+            open a ticket under <Link href="/app/tickets" className="font-medium underline">Tickets</Link> and attach the request (redact the key).
+          </p>
+        </section>
+
         <section className={panelClass}>
           <h2 className="text-lg font-semibold">Example request</h2>
           <pre className={`mt-3 overflow-x-auto ${codeBlockClass}`}>{curlExample}</pre>
