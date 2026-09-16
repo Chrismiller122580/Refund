@@ -45,10 +45,12 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `amountSentToClient` | number | Amount FW sends to client |
-| `clientRefundToCustomer` | number | Amount client refunds to customer |
-| `totalCustomerReceives` | number | Sum of the two — **primary customer-facing total** |
+| `amountSentToClient` | number | Amount FW sends to the dealer |
+| `clientRefundToCustomer` | number | **Client refund amount** — what the dealer/client refunds to the customer |
+| `totalCustomerReceives` | number | Sum of the two — primary customer-facing total |
 | `agentChargeback` | number | Pro-rated agent chargeback = `cost × (agentPercent/100) × (1 − ourPercent)` |
+
+**Client refund amount (VSC):** read `recommendation.recommended`, then use `results.refundPerDays.clientRefundToCustomer` when it is `days`, or `results.refundPerMiles.clientRefundToCustomer` when it is `miles`. If `equivalent`, either path is fine.
 
 ### Freedom — recommendation
 
@@ -87,9 +89,9 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 | `retailCost` | number | Yes | Retail cost in FW |
 | `deductible` | number | Yes | Deductible from Classic refund sheet |
 | `approvedClaimAmount` | number | Yes | Approved claim amount |
-| `agentId` | string | No | Agent / agency ID | Optional; stable identifier for chargeback tracking |
-| `agentName` | string | No | Agent / producer name | Optional; for chargeback tracking |
-| `agentPercent` | number | No | Agent commission rate | Percent points (e.g. `10` = 10%) |
+| `agentId` | string | No | Agent / agency ID |
+| `agentName` | string | No | Agent / producer name |
+| `agentPercent` | number | No | Agent commission rate |
 
 ### GAP — response (`results`)
 
@@ -101,10 +103,10 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 | `prorated.fwProratedProfit` | number | FW prorated profit |
 | `prorated.clientProratedProfit` | number | Client prorated profit |
 | `refund.amountSentToClient` | number | Amount sent to client |
-| `refund.clientRefundToCustomer` | number | Client refund to customer |
+| `refund.clientRefundToCustomer` | number | **Client refund amount** — dealer/client refund to customer |
 | `refund.totalCustomerReceives` | number | **Primary customer-facing total** |
-| `refund.agentChargeback` | number | Pro-rated agent chargeback = `fwCost × (agentPercent/100) × (1 − ourPercent)` |
-| `agentOriginalCommission` | number | Full agent commission = `fwCost × agentPercent / 100` |
+| `refund.agentChargeback` | number | Pro-rated agent chargeback |
+| `agentOriginalCommission` | number | Full agent commission |
 
 ---
 
@@ -117,43 +119,3 @@ Field dictionary for integrating external systems with the Refund Calculators AP
 | `type` | string | Yes | `freedom` or `gap` |
 | `inputs` | object | Yes | `FreedomInputs` or `GapInputs` |
 | `savedAt` | string (ISO) | Response only | Last save timestamp |
-
----
-
-## Contract term lookup
-
-Use this table when your external system stores a term label instead of raw miles/days.
-
-| Term label | Miles | Days |
-|------------|-------|------|
-| 3 Months | 3,000 | 90 |
-| 6 Months | 6,000 | 180 |
-| 12 Months | 15,000 | 365 |
-| 24 Months | 30,000 | 730 |
-| 36 Months | 50,000 | 1,095 |
-| 48 Months | 70,000 | 1,460 |
-| 60 Months | 100,000 | 1,825 |
-| 72 Months | 100,000 | 2,190 |
-| 84 Months | 100,000 | 2,555 |
-
-GAP integrations use **days only** from this table.
-
----
-
-## Authentication fields
-
-### Login request
-
-| Field | Type | Required |
-|-------|------|----------|
-| `email` | string | Yes |
-| `password` | string | Yes |
-
-### API key header (server-to-server)
-
-| Header | Value |
-|--------|-------|
-| `Authorization` | `Bearer rfnd_<secret>` |
-| `X-API-Key` | `rfnd_<secret>` (alternative) |
-
-API keys are created by an admin via `POST /api/admin/api-keys`. See [ADMIN.md](./ADMIN.md).
