@@ -13,49 +13,28 @@ This documentation covers integrator-facing endpoints only. Admin setup, interna
 
 Send the key on every request using one of these headers:
 
-```http
 Authorization: Bearer rfnd_<your-api-key>
-```
 
 Or:
 
-```http
 X-API-Key: rfnd_<your-api-key>
-```
 
 API keys are tied to a service account. Contact your administrator to request a key. Keys are shown once at creation and cannot be retrieved later.`,
   },
   {
     id: 'calculate',
     title: 'Calculate refunds',
-    content: `### VSC (Freedom)
+    content: `VSC (Freedom): POST /api/calculate/freedom
 
-` + '`POST /api/calculate/freedom`' + `
+Gap: POST /api/calculate/gap
 
-### Gap
+Both endpoints require Content-Type: application/json.
 
-` + '`POST /api/calculate/gap`' + `
+Required for API key requests: contractNumber plus the calculator fields in the tables below.
 
-Both endpoints require ` + '`Content-Type: application/json`' + `.
+Each API-key calculate request is automatically saved as a tracked record.
 
-### Required for API key requests
-
-| Field | Type | Description |
-|-------|------|-------------|
-| ` + '`contractNumber`' + ` | string | Your contract identifier for tracking |
-| Calculator fields | object | Dates, costs, mileage, and term data (see field tables below) |
-
-Each API-key calculate request is automatically saved as a tracked record on our side.
-
-### Response
-
-| Field | Description |
-|-------|-------------|
-| ` + '`contractNumber`' + ` | Echo of the contract you sent |
-| ` + '`results`' + ` | Calculated refund breakdown |
-| ` + '`warnings`' + ` | Input validation messages |
-| ` + '`recommendation`' + ` | VSC only — which refund path to use |
-| ` + '`case`' + ` | Saved record ` + '`id`' + `, ` + '`savedAt`' + `, and ` + '`contractNumber`' + ` |`,
+Response fields: contractNumber, results, warnings, recommendation (VSC only), case.`,
   },
   {
     id: 'freedom-fields',
@@ -74,14 +53,38 @@ Each API-key calculate request is automatically saved as a tracked record on our
 | deductible | number | Yes | Deductible ($) |
 | approvedClaimAmount | number | Yes | Approved claims ($); use 0 if none |
 | unlimitedMileage | boolean | No | Days-only mode; default false |
+| agentId | string | No | Agent or agency ID |
+| agentName | string | No | Agent or producer name |
+| agentPercent | number | No | Agent commission percent points (10 = 10%) |
 
-*Ignored when unlimitedMileage is true.
+*Ignored when unlimitedMileage is true.`,
+  },
+  {
+    id: 'vsc-results',
+    title: 'VSC client refund amount',
+    content: `Yes — the VSC client refund amount is in the calculate response.
 
-Primary result: recommendation.daysTotal or recommendation.milesTotal depending on recommendation.recommended.`,
+Field name: clientRefundToCustomer
+Meaning: amount the dealer/client refunds to the customer (markup side).
+
+VSC returns two paths. Read recommendation.recommended first, then pick the matching path:
+
+| recommendation.recommended | Client refund amount |
+|----------------------------|----------------------|
+| days | results.refundPerDays.clientRefundToCustomer |
+| miles | results.refundPerMiles.clientRefundToCustomer |
+| equivalent | either path (they match) |
+
+Other amounts on the same object:
+- amountSentToClient — what Freedom sends the dealer
+- totalCustomerReceives — client refund + amount sent to client (customer-facing total)
+- agentChargeback — prorated agent commission chargeback
+
+Unlimited mileage products: use the days path only (results.refundPerDays).`,
   },
   {
     id: 'gap-fields',
-    title: 'Gap request fields',
+    title: 'Gap request and refund fields',
     content: `| Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | contractNumber | string | Yes | Contract identifier |
@@ -93,31 +96,19 @@ Primary result: recommendation.daysTotal or recommendation.milesTotal depending 
 | deductible | number | Yes | Deductible ($) |
 | approvedClaimAmount | number | Yes | Approved claims ($); use 0 if none |
 
-Primary result: results.refund.totalCustomerReceives`,
+Gap client refund amount: results.refund.clientRefundToCustomer
+Customer-facing total: results.refund.totalCustomerReceives
+Amount sent to dealer: results.refund.amountSentToClient`,
   },
   {
     id: 'example',
     title: 'Example request',
     content: `Replace YOUR_API_KEY and field values with your contract data.
 
-```bash
 curl -s -X POST "$BASE_URL/api/calculate/freedom" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{
-    "contractNumber": "FW-12345",
-    "startMileage": 101520,
-    "endMileage": 204145,
-    "contractTermMiles": 5000,
-    "contractTermDays": 1095,
-    "startDate": "2024-06-25",
-    "endDate": "2025-10-29",
-    "cost": 1928,
-    "markup": 1050,
-    "deductible": 50,
-    "approvedClaimAmount": 0
-  }'
-```
+  -d '{"contractNumber":"FW-12345","startMileage":101520,"endMileage":204145,"contractTermMiles":5000,"contractTermDays":1095,"startDate":"2024-06-25","endDate":"2025-10-29","cost":1928,"markup":1050,"deductible":50,"approvedClaimAmount":0}'
 
 Use your deployment URL as BASE_URL (for example, the URL shown after you sign in).`,
   },
