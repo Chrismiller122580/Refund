@@ -219,7 +219,7 @@ export function FreedomCalculator() {
                 hasError={hasFieldError(warnings, 'markup')}
               />
             </Field>
-            <Field label="Deductible">
+            <Field label="Cancellation">
               <NumberInput value={inputs.deductible} onChange={(v) => update('deductible', v)} step={0.01} />
             </Field>
             <Field label="Approved Claim Amount">
