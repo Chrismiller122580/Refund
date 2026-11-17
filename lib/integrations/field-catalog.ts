@@ -14,7 +14,7 @@ const SHARED_FIELDS: CatalogField[] = [
   { key: 'contractTermDays', label: 'Contract term (days)', type: 'number', required: true, shared: true },
   { key: 'startDate', label: 'Start date', type: 'string', required: true, shared: true },
   { key: 'endDate', label: 'End date', type: 'string', required: true, shared: true },
-  { key: 'deductible', label: 'Deductible', type: 'number', required: true, shared: true },
+  { key: 'deductible', label: 'Cancellation', type: 'number', required: true, shared: true },
   { key: 'approvedClaimAmount', label: 'Approved claim amount', type: 'number', required: true, shared: true },
 ]
 
