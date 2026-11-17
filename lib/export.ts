@@ -40,7 +40,7 @@ export function formatFreedomSummary(
     line('End Date', inputs.endDate),
     line('Cost', formatCurrency(inputs.cost)),
     line('Mark Up', formatCurrency(inputs.markup)),
-    line('Deductible', formatCurrency(inputs.deductible)),
+    line('Cancellation', formatCurrency(inputs.deductible)),
     line('Approved Claim', formatCurrency(inputs.approvedClaimAmount)),
     ...(inputs.agentId || inputs.agentName || inputs.agentPercent
       ? [
@@ -105,7 +105,7 @@ export function formatGapSummary(
     line('End Date', inputs.endDate),
     line('FW Cost', formatCurrency(inputs.fwCost)),
     line('Retail Cost', formatCurrency(inputs.retailCost)),
-    line('Deductible', formatCurrency(inputs.deductible)),
+    line('Cancellation', formatCurrency(inputs.deductible)),
     line('Approved Claim', formatCurrency(inputs.approvedClaimAmount)),
     ...(inputs.agentId || inputs.agentName || inputs.agentPercent
       ? [
@@ -206,7 +206,7 @@ export function downloadFreedomExcel(
     kv('End Date', inputs.endDate),
     kv('Cost', inputs.cost),
     kv('Mark Up', inputs.markup),
-    kv('Deductible', inputs.deductible),
+    kv('Cancellation', inputs.deductible),
     kv('Approved Claim Amount', inputs.approvedClaimAmount),
     ...(inputs.agentId || inputs.agentName || inputs.agentPercent
       ? [
@@ -305,7 +305,7 @@ export function downloadGapExcel(
     kv('End Date', inputs.endDate),
     kv('FW Cost', inputs.fwCost),
     kv('Retail Cost', inputs.retailCost),
-    kv('Deductible', inputs.deductible),
+    kv('Cancellation', inputs.deductible),
     kv('Approved Claim Amount', inputs.approvedClaimAmount),
     ...(inputs.agentId || inputs.agentName || inputs.agentPercent
       ? [
