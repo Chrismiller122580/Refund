@@ -121,7 +121,7 @@ export function GapCalculator() {
                 hasError={hasFieldError(warnings, 'retailCost')}
               />
             </Field>
-            <Field label="Deductible" hint="Obtain from Classic refund sheet">
+            <Field label="Cancellation" hint="Obtain from Classic refund sheet">
               <NumberInput value={inputs.deductible} onChange={(v) => update('deductible', v)} step={0.01} />
             </Field>
             <Field label="Approved Claim Amount">
